@@ -23,8 +23,8 @@
   </scm>  
   <distributionManagement>
     <repository>
-      <id>java.net</id>
-      <url>https://maven.java.net/service/local/staging/deploy/maven2/</url>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
   </distributionManagement>
 </project>

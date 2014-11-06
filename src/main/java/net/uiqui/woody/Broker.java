@@ -1,5 +1,5 @@
 /*
- * Woody - core
+ * Woody - Basic Actor model implementation
  * 
  * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
  * 
@@ -41,6 +41,7 @@ public class Broker {
 
 	public static void register(final Topic topic) {
 		topics.put(topic.getName(), topic);
+		register(topic.endpoint(), topic);
 	}
 	
 	public static void unregister(final Topic topic) {
@@ -48,7 +49,7 @@ public class Broker {
 		unregister(topic.endpoint());
 	}
 	
-	public static Topic getTopic(String topicName) {
+	public static Topic getTopic(final String topicName) {
 		Topic topic = topics.get(topicName);
 		
 		if (topic == null) {
@@ -58,8 +59,8 @@ public class Broker {
 		return topic;
 	}
 
-	private static synchronized Topic createTopic(String topicName) {
-		Topic topic = topics.get(topicName);
+	private static synchronized Topic createTopic(final String topicName) {
+		final Topic topic = topics.get(topicName);
 		
 		if (topic != null) {
 			return topic;
@@ -74,12 +75,12 @@ public class Broker {
 	}	
 	
 	public static void send(final Topic topic, final Object object) {
-		send(topic.endpoint(), object);
+		topic.push(object);
 	}		
 	
 	public static void sendToTopic(final String topicName, final Object object) {
-		Topic topic = getTopic(topicName);
-		send(topic.endpoint(), object);
+		final Topic topic = getTopic(topicName);
+		send(topic, object);
 	}		
 
 	public static void send(final Endpoint endpoint, final Object object) {

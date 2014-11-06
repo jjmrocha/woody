@@ -1,5 +1,5 @@
 /*
- * Woody - core
+ * Woody - Basic Actor model implementation
  * 
  * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
  * 
@@ -17,17 +17,14 @@
  */
 package net.uiqui.woody;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import net.uiqui.woody.actor.Actor;
 import net.uiqui.woody.error.NoPusherError;
-import net.uiqui.woody.listener.Listener;
-import net.uiqui.woody.listener.ListenerPusher;
 
-public class Topic implements Listener<Object> {
-	private final List<Endpoint> subscribers = new ArrayList<Endpoint>();
-	private final ListenerPusher<Object> queue = new ListenerPusher<Object>(this);
+public class Topic implements Pusher<Object> {
+	private final Deque<Endpoint> subscribers = new ConcurrentLinkedDeque<Endpoint>();
 	
 	private Endpoint endpoint = null;
 	private String name = null;
@@ -37,7 +34,6 @@ public class Topic implements Listener<Object> {
 
 		endpoint = Endpoint.getEndpointForTopic(topicName);
 		Broker.register(this);
-		Broker.register(endpoint, queue);
 	}
 	
 	public String getName() {
@@ -50,7 +46,6 @@ public class Topic implements Listener<Object> {
 	
 	public void close() {
 		Broker.unregister(this);
-		queue.stop();
 	}	
 
 	@SuppressWarnings("rawtypes")
@@ -70,21 +65,16 @@ public class Topic implements Listener<Object> {
 		subscribers.remove(endpoint);
 	}
 
-	public void onMessage(Object msg) {
-		List<Endpoint> errors = new ArrayList<Endpoint>();
-		
+	@Override
+	public boolean push(final Object msg) {
 		for (Endpoint endpoint: subscribers) {
 			try {
 				Broker.send(endpoint, msg);
 			} catch (NoPusherError e) {
-				errors.add(endpoint);
+				subscribers.remove(endpoint);
 			}
 		}
 		
-		if (!errors.isEmpty()) {
-			for (Endpoint endpoint: errors) {
-				unsubscribe(endpoint);
-			}
-		}
+		return true;
 	}
 }

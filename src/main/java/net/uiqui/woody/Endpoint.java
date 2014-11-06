@@ -1,5 +1,5 @@
 /*
- * Woody - core
+ * Woody - Basic Actor model implementation
  * 
  * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
  * 
