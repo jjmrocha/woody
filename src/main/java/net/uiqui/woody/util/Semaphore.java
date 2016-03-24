@@ -18,7 +18,7 @@
 package net.uiqui.woody.util;
 
 public class Semaphore {
-	private boolean locked = false;
+	private boolean locked = true;
 
 	public synchronized void waitForNotify() throws InterruptedException {
 		while (locked) {
