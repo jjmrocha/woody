@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-16 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package net.uiqui.woody.actor;
 import net.uiqui.woody.util.ReferenceUtil;
 
 public abstract class LeadingActor<E> extends Actor<E> implements Runnable {
+	private String actorName = null;
 	
 	public LeadingActor() {
 		this(ReferenceUtil.getReference());
@@ -28,6 +29,10 @@ public abstract class LeadingActor<E> extends Actor<E> implements Runnable {
 	public LeadingActor(final String actorName) {
 		super(actorName);
 		
+		this.actorName = actorName;
+	}
+
+	public void start() {
 		Thread thread = new Thread(this, actorName);
 		thread.start();
 	}

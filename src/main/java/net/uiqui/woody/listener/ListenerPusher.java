@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import net.uiqui.woody.Pusher;
 import net.uiqui.woody.util.Semaphore;
 
-public class ListenerPusher<E> implements Runnable, Pusher<E> {
+public final class ListenerPusher<E> implements Runnable, Pusher<E> {
 	private Queue<E> queue = null;
 	private boolean running = true;
 	private Listener<E> listener = null;
@@ -51,7 +51,10 @@ public class ListenerPusher<E> implements Runnable, Pusher<E> {
 					listener.onMessage(msg);
 				}
 			} else {
-				semaphore.stop();
+				try {
+					semaphore.waitForNotify();
+				} catch (InterruptedException e) {
+				}
 			}
 		}
 	}
@@ -60,8 +63,8 @@ public class ListenerPusher<E> implements Runnable, Pusher<E> {
 		if (isRunning()) {
 			final boolean done = queue.offer(msg);
 
-			if (done && semaphore.status() == Semaphore.RED) {
-				semaphore.go();
+			if (done) {
+				semaphore.notifyToWakeup();
 			}
 
 			return done;
@@ -74,10 +77,7 @@ public class ListenerPusher<E> implements Runnable, Pusher<E> {
 		if (running) {
 			running = false;
 			queue.clear();
-
-			if (semaphore.status() == Semaphore.RED) {
-				semaphore.go();
-			}
+			semaphore.notifyToWakeup();
 		}
 	}
 

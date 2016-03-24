@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-16 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package net.uiqui.woody;
 import java.io.Serializable;
 
 import net.uiqui.woody.error.InvalidEndpointException;
+import net.uiqui.woody.util.ReferenceUtil;
 
 public class Endpoint implements Serializable {
 	private static final long serialVersionUID = -7406089919193703525L;
@@ -27,6 +28,7 @@ public class Endpoint implements Serializable {
 	private static final String WOODY_TYPE = "w:";
 	private static final String ACTOR_BASE = "a";
 	private static final String TOPIC_BASE = "t";
+	private static final String RPC_BASE = "r";
 	
 	private String url = null;
 	private transient int hashCode = 0;
@@ -84,6 +86,10 @@ public class Endpoint implements Serializable {
 	public static Endpoint getEndpointForActor(final String actorName) {
 		return new Endpoint(buildName(ACTOR_BASE, actorName));
 	}	
+	
+	public static Endpoint getEndpointForRPC() {
+		return new Endpoint(buildName(RPC_BASE, ReferenceUtil.getReference()));
+	}		
 	
 	private static String buildName(final String base, final String name) {
 		final StringBuilder buffer = new StringBuilder();
