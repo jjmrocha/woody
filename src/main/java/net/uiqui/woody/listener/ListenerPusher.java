@@ -21,13 +21,13 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import net.uiqui.woody.Pusher;
-import net.uiqui.woody.util.Semaphore;
+import net.uiqui.woody.util.BinarySemaphore;
 
 public final class ListenerPusher<E> implements Runnable, Pusher<E> {
 	private Queue<E> queue = null;
 	private boolean running = true;
 	private Listener<E> listener = null;
-	private final Semaphore semaphore = new Semaphore();
+	private final BinarySemaphore semaphore = new BinarySemaphore();
 
 	public ListenerPusher(final Listener<E> listener) {
 		this(listener, new ConcurrentLinkedQueue<E>());

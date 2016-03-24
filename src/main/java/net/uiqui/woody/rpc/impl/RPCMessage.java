@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2016 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,24 +15,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.util;
+package net.uiqui.woody.rpc.impl;
 
-public class Semaphore {
-	private boolean locked = true;
+import java.io.Serializable;
 
-	public synchronized void waitForNotify() throws InterruptedException {
-		while (locked) {
-			wait();
-		}
-		
-		locked = true;
+import net.uiqui.woody.Endpoint;
+
+public class RPCMessage<E> implements Serializable {
+	private static final long serialVersionUID = -1741152421937631613L;
+	
+	private E value = null;
+	private Endpoint replyTo = null;
+	
+	public RPCMessage(final Endpoint replyTo, final E value) {
+		this.replyTo = replyTo;
+		this.value = value;
 	}
 
-	public synchronized void notifyToWakeup() {
-		if (locked) {
-			notify();
-		}
-		
-		locked = false;
+	public Endpoint replyTo() {
+		return replyTo;
+	}
+
+	public E value() {
+		return value;
 	}
 }

@@ -17,32 +17,22 @@
  */
 package net.uiqui.woody.util;
 
-public class Ring<E> {
-	private Node<E> current = null;
-	
-	public synchronized void add(final E value) {
-		if (current == null) {
-			current = new Node<E>(value, null);
-			current.next = current;
-		} else {
-			Node<E> next = current.next;
-			current.next = new Node<E>(value, next);
+public class BinarySemaphore {
+	private boolean locked = true;
+
+	public synchronized void waitForNotify() throws InterruptedException {
+		while (locked) {
+			wait();
 		}
-	}
-	
-	public synchronized E get() {
-		E value = current.value;
-		current = current.next;
-		return value;
+		
+		locked = true;
 	}
 
-	private class Node<Type> {
-		public final Type value;
-		public Node<Type> next;
-
-		public Node(final Type value, final Node<Type> next) {
-			this.value = value;
-			this.next = next;
+	public synchronized void notifyToWakeup() {
+		if (locked) {
+			notify();
 		}
+		
+		locked = false;
 	}
 }

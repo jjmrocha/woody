@@ -15,33 +15,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.rpc;
+package net.uiqui.woody.util;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-import net.uiqui.woody.Broker;
-import net.uiqui.woody.actor.SupportingActor;
-import net.uiqui.woody.error.NoPusherError;
-import net.uiqui.woody.rpc.impl.RPCMessage;
-
-public abstract class RPCServer<R, E> extends SupportingActor<RPCMessage<R>> {
-	public RPCServer(Executor threadPool) {
-		super(threadPool);
+public class DeamonPool {
+	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
+		@Override
+		public Thread newThread(final Runnable r) {
+			Thread thread = new Thread(r);
+			thread.setDaemon(true);
+			return thread;
+		}
+	};
+	
+	public static Executor newFixedDaemonPool(final int maxSize) {
+		return Executors.newFixedThreadPool(maxSize, THREAD_FACTORY);
 	}
 	
-	public RPCServer(String rpcName, Executor threadPool) {
-		super(rpcName, threadPool);
-	}
-
-	@Override
-	public void handle(final RPCMessage<R> msg) {
-		final E response = process(msg.value());
-		
-		try {
-			Broker.send(msg.replyTo(), response);
-		} catch (NoPusherError e) {
-		}
-	}
-
-	public abstract E process(final R value);
+	public static Executor newCachedDaemonPool() {
+		return Executors.newCachedThreadPool(THREAD_FACTORY);
+	}	
+	
+	public static Executor newSingleDaemonExecutor() {
+		return Executors.newSingleThreadExecutor(THREAD_FACTORY);
+	}	
 }

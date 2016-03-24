@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 import net.uiqui.woody.Broker;
 import net.uiqui.woody.Endpoint;
 import net.uiqui.woody.Pusher;
+import net.uiqui.woody.error.RPCTimeoutException;
+import net.uiqui.woody.rpc.impl.RPCMessage;
 
 public class RPCClient<R, E> {
 	private static final long TIMEOUT = 5000;
@@ -46,14 +48,14 @@ public class RPCClient<R, E> {
 		
 		try {
 			final Semaphore semaphore = new Semaphore(0);
-			final RPCPusher<E> pusher = new RPCPusher<E>(semaphore);
+			final LocalPusher<E> pusher = new LocalPusher<E>(semaphore);
 			Broker.register(replyTo, pusher);
 			
 			final RPCMessage<R> request = new RPCMessage<R>(replyTo, message);
 			Broker.send(endpoint, request);
 			
 			if (semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
-				return pusher.getValue();
+				return pusher.value();
 			} else {
 				throw new RPCTimeoutException(endpoint);
 			}
@@ -65,15 +67,15 @@ public class RPCClient<R, E> {
 		return null;
 	}
 
-	private static class RPCPusher<E> implements Pusher<E> {
+	private static class LocalPusher<E> implements Pusher<E> {
 		private E returnValue = null;
 		private Semaphore semaphore = null;
 		
-		public RPCPusher(final Semaphore semaphore) {
+		public LocalPusher(final Semaphore semaphore) {
 			this.semaphore = semaphore;
 		}
 
-		public E getValue() {
+		public E value() {
 			return returnValue;
 		}
 
