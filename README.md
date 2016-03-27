@@ -58,6 +58,8 @@ Actor<Event> bot = new LeadingActor<Event>() {
 		// Process message
 	}
 };
+
+bot.start();
  ```
  
  
@@ -71,7 +73,7 @@ Topic errorTopic = new Topic("error");
 Topic eventTopic = Broker.getTopic("event");
 
 // An Actor can subscribe and topic
-errorTopic.subscribe(actorStr);
+errorTopic.subscribe(bot);
 
 // A Topic can also subscribe a Topic 
 errorTopic.subscribe(eventTopic);
