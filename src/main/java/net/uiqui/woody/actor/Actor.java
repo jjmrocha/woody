@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,20 +20,19 @@ package net.uiqui.woody.actor;
 import net.uiqui.woody.Broker;
 import net.uiqui.woody.Endpoint;
 import net.uiqui.woody.listener.Listener;
-import net.uiqui.woody.listener.ListenerPusher;
 import net.uiqui.woody.util.ReferenceUtil;
 
 public abstract class Actor<E> implements Listener<E> {
 	private Endpoint endpoint = null;
-	private final ListenerPusher<E> pusher = new ListenerPusher<E>(this);
 	
 	public Actor() {
 		this(ReferenceUtil.getReference());
 	}	
 	
 	public Actor(final String actorName) {
+		super();
 		endpoint = Endpoint.getEndpointForActor(actorName);
-		Broker.register(endpoint, pusher);
+		Broker.register(endpoint, this);
 	}
 	
 	public Endpoint endpoint() {
@@ -42,7 +41,6 @@ public abstract class Actor<E> implements Listener<E> {
 	
 	public void stop() {
 		Broker.unregister(endpoint);
-		pusher.stop();
 	}
 	
 	public void onMessage(final E msg) {

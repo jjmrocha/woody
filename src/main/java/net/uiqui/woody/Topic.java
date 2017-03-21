@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class Topic implements Pusher<Object> {
 	}
 
 	@Override
-	public boolean push(final Object msg) {
+	public void push(final Object msg) {
 		for (Endpoint endpoint: subscribers) {
 			try {
 				Broker.send(endpoint, msg);
@@ -74,7 +74,5 @@ public class Topic implements Pusher<Object> {
 				subscribers.remove(endpoint);
 			}
 		}
-		
-		return true;
 	}
 }

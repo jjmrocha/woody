@@ -80,11 +80,9 @@ public class RPCClient<R, E> {
 		}
 
 		@Override
-		public boolean push(final E value) {
+		public void push(final E value) {
 			returnValue = value;
 			semaphore.release();
-			
-			return true;
 		}
 	}
 }

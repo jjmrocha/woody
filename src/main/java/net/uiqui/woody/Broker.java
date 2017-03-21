@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import net.uiqui.woody.actor.Actor;
 import net.uiqui.woody.error.NoPusherError;
+import net.uiqui.woody.listener.Listener;
+import net.uiqui.woody.listener.ListenerQueue;
 
 public class Broker {
 	private static final ConcurrentHashMap<Endpoint, Pusher<Object>> endpoints = new ConcurrentHashMap<Endpoint, Pusher<Object>>();
@@ -30,9 +32,19 @@ public class Broker {
 	public static void register(final Endpoint endpoint, final Pusher pusher) {
 		endpoints.put(endpoint, pusher);
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static void register(final Endpoint endpoint, final Listener listener) {
+		register(endpoint, new ListenerQueue(listener));
+	}
 
+	@SuppressWarnings({ "rawtypes"})
 	public static void unregister(final Endpoint endpoint) {
-		endpoints.remove(endpoint);
+		final Pusher pusher = endpoints.remove(endpoint);
+		
+		if (pusher != null && pusher instanceof ListenerQueue) {
+			((ListenerQueue)pusher).stop();
+		}
 	}
 
 	public static boolean isRegisted(final Endpoint endpoint) {

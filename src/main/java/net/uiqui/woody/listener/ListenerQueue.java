@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,24 +17,17 @@
  */
 package net.uiqui.woody.listener;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import net.uiqui.woody.Pusher;
-import net.uiqui.woody.util.BinarySemaphore;
 
-public final class ListenerPusher<E> implements Runnable, Pusher<E> {
-	private Queue<E> queue = null;
-	private boolean running = true;
+public final class ListenerQueue<E> implements Runnable, Pusher<E> {
+	private final BlockingQueue<E> queue = new LinkedBlockingQueue<E>();
 	private Listener<E> listener = null;
-	private final BinarySemaphore semaphore = new BinarySemaphore();
+	private boolean running = true;
 
-	public ListenerPusher(final Listener<E> listener) {
-		this(listener, new ConcurrentLinkedQueue<E>());
-	}
-
-	public ListenerPusher(final Listener<E> listener, final Queue<E> queue) {
-		this.queue = queue;
+	public ListenerQueue(final Listener<E> listener) {
 		this.listener = listener;
 
 		final Thread thread = new Thread(this);
@@ -44,32 +37,20 @@ public final class ListenerPusher<E> implements Runnable, Pusher<E> {
 
 	public void run() {
 		while (isRunning()) {
-			if (!queue.isEmpty()) {
-				E msg = queue.poll();
+			try {
+				E msg = queue.take();
 
 				if (msg != null) {
 					listener.onMessage(msg);
 				}
-			} else {
-				try {
-					semaphore.waitForNotify();
-				} catch (InterruptedException e) {
-				}
+			} catch (InterruptedException e) {
 			}
 		}
 	}
 
-	public boolean push(final E msg) {
+	public void push(final E msg) {
 		if (isRunning()) {
-			final boolean done = queue.offer(msg);
-
-			if (done) {
-				semaphore.notifyToWakeup();
-			}
-
-			return done;
-		} else {
-			return false;
+			queue.offer(msg);
 		}
 	}
 
@@ -77,7 +58,6 @@ public final class ListenerPusher<E> implements Runnable, Pusher<E> {
 		if (running) {
 			running = false;
 			queue.clear();
-			semaphore.notifyToWakeup();
 		}
 	}
 
