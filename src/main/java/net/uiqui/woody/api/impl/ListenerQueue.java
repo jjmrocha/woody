@@ -15,39 +15,40 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.listener;
+package net.uiqui.woody.api.impl;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import net.uiqui.woody.Pusher;
+import net.uiqui.woody.api.Listener;
+import net.uiqui.woody.api.Pusher;
+import net.uiqui.woody.util.DeamonFactory;
 
-public final class ListenerQueue<E> implements Runnable, Pusher<E> {
+public final class ListenerQueue<E> implements Pusher<E> {
 	private final BlockingQueue<E> queue = new LinkedBlockingQueue<E>();
-	private Listener<E> listener = null;
 	private boolean running = true;
 
 	public ListenerQueue(final Listener<E> listener) {
-		this.listener = listener;
-
-		final Thread thread = new Thread(this);
-		thread.setDaemon(true);
-		thread.start();
-	}
-
-	public void run() {
-		while (isRunning()) {
-			try {
-				E msg = queue.take();
-
-				if (msg != null) {
-					listener.onMessage(msg);
+		DeamonFactory.run(new Runnable() {
+			@Override
+			public void run() {
+				E msg = null;
+						
+				while (isRunning()) {
+					try {
+						if (msg != null) {
+							listener.onMessage(msg);
+						}
+						
+						msg = queue.poll(5, TimeUnit.SECONDS);
+					} catch (InterruptedException e) {
+					}
 				}
-			} catch (InterruptedException e) {
 			}
-		}
+		});
 	}
-
+	
 	public void push(final E msg) {
 		if (isRunning()) {
 			queue.offer(msg);

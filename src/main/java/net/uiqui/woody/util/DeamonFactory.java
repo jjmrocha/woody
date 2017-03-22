@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2016 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2016-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,15 +21,18 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-public class DeamonPool {
+public class DeamonFactory {
 	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
 		@Override
 		public Thread newThread(final Runnable r) {
-			Thread thread = new Thread(r);
+			final Thread thread = new Thread(r);
 			thread.setDaemon(true);
 			return thread;
 		}
 	};
+	
+	private static final Executor THREAD_POOL = newCachedDaemonPool();
+	private static final Executor THREAD_QUEUE = newSingleDaemonExecutor();
 	
 	public static Executor newFixedDaemonPool(final int maxSize) {
 		return Executors.newFixedThreadPool(maxSize, THREAD_FACTORY);
@@ -42,4 +45,17 @@ public class DeamonPool {
 	public static Executor newSingleDaemonExecutor() {
 		return Executors.newSingleThreadExecutor(THREAD_FACTORY);
 	}	
+	
+	public static void run(final Runnable r) {
+		final Thread thread = THREAD_FACTORY.newThread(r);
+		thread.start();
+	}
+	
+	public static void spawn(final Runnable r) {
+		THREAD_POOL.execute(r);
+	}	
+	
+	public static void queue(final Runnable r) {
+		THREAD_QUEUE.execute(r);
+	}		
 }

@@ -15,7 +15,7 @@ Maven dependency:
 <dependency>
     <groupId>net.uiqui</groupId>
     <artifactId>woody</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
  ```
  
@@ -33,33 +33,6 @@ Actor<String> actorStr = new Actor<String>() {
 	}
 };
 
-// For concurrent processing we can use the SupportingActor 
-// that processes messages using and Executor
-Executor threadPool = DeamonPool.newCachedDaemonPool();
-
-Actor<Record> server = new SupportingActor<Record>(threadPool) {
-	@Override
-	public void handle(Record msg) {
-		// Do some work
-	}
-};
-
-// The LeadingActor implementation runs autonomous code by implementing the Runnable interface 
-Actor<Event> bot = new LeadingActor<Event>() {
-	@Override
-	public void run() {
-		while(true) {
-			// Do some work
-		}
-	}
-
-	@Override
-	public void handle(Event msg) {
-		// Process message
-	}
-};
-
-bot.start();
  ```
  
  
@@ -98,24 +71,6 @@ Broker.send(actorStr.endpoint(), "Test");
 
 Broker.send(errorTopic.endpoint(), new Event()); 
  ```
- 
- 
-### RPC
-
- ```java
-// RPC Server
-RPCServer<MathRequest, Double> calculator = new RPCServer<MathRequest, Double>("mathServer", threadPool){
-	@Override
-	public Double process(MathRequest request) {
-		return request.compute();
-	}
-};
-
-// RPC Client
-RPCClient<MathRequest, Double> rpcClient = new RPCClient<MathRequest, Double>("mathServer");
-Double result = rpcClient.call(new MathRequest("add", 1, 2));
- ```
-
 
 ##License
 [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)

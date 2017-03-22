@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,27 +17,24 @@
  */
 package net.uiqui.woody.util;
 
+import java.security.SecureRandom;
+
 public class ReferenceUtil {
-	private static final long BASE_TS = 946684800000L;
-	private static long seq = 0;
+	private static final SecureRandom numberGenerator = new SecureRandom();
 	
 	public static String getReference() {
-		final StringBuilder buffer = new StringBuilder();
+		final StringBuilder builder = new StringBuilder();
 		
-		buffer.append(System.currentTimeMillis() - BASE_TS);
-		buffer.append("-");
-		buffer.append(getSeq());
-		
-		return buffer.toString();
-	}
-	
-	private synchronized static long getSeq() {
-		if (seq == Long.MAX_VALUE) {
-			seq = 0;
-		} else {
-			seq++;
+		for (int i = 0; i < 4; i++) {
+			final int randInt = numberGenerator.nextInt();
+			
+			if (i > 0) {
+				builder.append("-");
+			}
+			
+			builder.append(Integer.toHexString(randInt));
 		}
-		
-		return seq;
+
+		return builder.toString();
 	}
 }

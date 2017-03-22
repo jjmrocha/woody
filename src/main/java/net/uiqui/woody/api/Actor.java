@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014-16 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,25 +15,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.actor;
+package net.uiqui.woody.api;
 
+import net.uiqui.woody.Broker;
 import net.uiqui.woody.util.ReferenceUtil;
 
-public abstract class LeadingActor<E> extends Actor<E> implements Runnable {
-	private String actorName = null;
+public abstract class Actor<E> implements Listener<E> {
+	private Endpoint endpoint = null;
 	
-	public LeadingActor() {
+	public Actor() {
 		this(ReferenceUtil.getReference());
+	}	
+	
+	public Actor(final String actorName) {
+		endpoint = Endpoint.getEndpointForActor(actorName);
+		Broker.register(endpoint, this);
 	}
-
-	public LeadingActor(final String actorName) {
-		super(actorName);
-		
-		this.actorName = actorName;
+	
+	public Endpoint endpoint() {
+		return endpoint;
 	}
-
-	public void start() {
-		Thread thread = new Thread(this, actorName);
-		thread.start();
+	
+	public void stop() {
+		Broker.unregister(endpoint);
 	}
+	
+	public void onMessage(final E msg) {
+		handle(msg);
+	}
+	
+	public abstract void handle(E msg);	
 }

@@ -15,12 +15,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody;
+package net.uiqui.woody.api;
 
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import net.uiqui.woody.actor.Actor;
+import net.uiqui.woody.Broker;
 import net.uiqui.woody.error.NoPusherError;
 
 public class Topic implements Pusher<Object> {

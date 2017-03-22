@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2016 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,14 +15,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.error;
+package net.uiqui.woody.api;
 
-import net.uiqui.woody.Endpoint;
+public interface Pusher<E> {
 
-public class RPCTimeoutException extends Exception {
-	private static final long serialVersionUID = 7513639109996244845L;
+	public abstract void push(E value);
 
-	public RPCTimeoutException(final Endpoint rpcService) {
-		super("Timeout invoking " + rpcService);
-	}
 }

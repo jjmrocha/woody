@@ -17,12 +17,16 @@
  */
 package net.uiqui.woody;
 
+import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.uiqui.woody.actor.Actor;
+import net.uiqui.woody.api.Actor;
+import net.uiqui.woody.api.Endpoint;
+import net.uiqui.woody.api.Listener;
+import net.uiqui.woody.api.Pusher;
+import net.uiqui.woody.api.Topic;
+import net.uiqui.woody.api.impl.ListenerQueue;
 import net.uiqui.woody.error.NoPusherError;
-import net.uiqui.woody.listener.Listener;
-import net.uiqui.woody.listener.ListenerQueue;
 
 public class Broker {
 	private static final ConcurrentHashMap<Endpoint, Pusher<Object>> endpoints = new ConcurrentHashMap<Endpoint, Pusher<Object>>();
@@ -32,18 +36,18 @@ public class Broker {
 	public static void register(final Endpoint endpoint, final Pusher pusher) {
 		endpoints.put(endpoint, pusher);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void register(final Endpoint endpoint, final Listener listener) {
 		register(endpoint, new ListenerQueue(listener));
 	}
 
-	@SuppressWarnings({ "rawtypes"})
+	@SuppressWarnings({ "rawtypes" })
 	public static void unregister(final Endpoint endpoint) {
 		final Pusher pusher = endpoints.remove(endpoint);
-		
+
 		if (pusher != null && pusher instanceof ListenerQueue) {
-			((ListenerQueue)pusher).stop();
+			((ListenerQueue) pusher).stop();
 		}
 	}
 
@@ -51,49 +55,62 @@ public class Broker {
 		return endpoints.containsKey(endpoint);
 	}
 
+	public static Collection<Endpoint> getEndpoints() {
+		return endpoints.keySet();
+	}
+
 	public static void register(final Topic topic) {
 		topics.put(topic.getName(), topic);
 		register(topic.endpoint(), topic);
 	}
-	
+
 	public static void unregister(final Topic topic) {
 		topics.remove(topic.getName());
 		unregister(topic.endpoint());
 	}
-	
+
+	public static Collection<String> getTopics() {
+		return topics.keySet();
+	}
+
 	public static Topic getTopic(final String topicName) {
 		Topic topic = topics.get(topicName);
-		
+
 		if (topic == null) {
 			topic = createTopic(topicName);
 		}
-		
+
 		return topic;
 	}
 
 	private static synchronized Topic createTopic(final String topicName) {
 		final Topic topic = topics.get(topicName);
-		
+
 		if (topic != null) {
 			return topic;
 		}
-		
+
 		return new Topic(topicName);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static void send(final Actor actor, final Object object) {
 		send(actor.endpoint(), object);
-	}	
-	
+	}
+
 	public static void send(final Topic topic, final Object object) {
 		topic.push(object);
-	}		
-	
+	}
+
 	public static void sendToTopic(final String topicName, final Object object) {
-		final Topic topic = getTopic(topicName);
+		final Topic topic = topics.get(topicName);
 		send(topic, object);
-	}		
+	}
+	
+	public static void sendToActor(final String actorName, final Object object) {
+		final Endpoint endpoint = Endpoint.getEndpointForActor(actorName);
+		send(endpoint, object);
+	}	
 
 	public static void send(final Endpoint endpoint, final Object object) {
 		final Pusher<Object> pusher = endpoints.get(endpoint);

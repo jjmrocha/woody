@@ -17,7 +17,7 @@
  */
 package net.uiqui.woody.error;
 
-import net.uiqui.woody.Endpoint;
+import net.uiqui.woody.api.Endpoint;
 
 public class NoPusherError extends Error {
 	private static final long serialVersionUID = -3534330961877924666L;
