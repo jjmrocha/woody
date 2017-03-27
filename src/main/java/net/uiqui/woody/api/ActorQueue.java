@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2017 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,30 +15,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.impl;
+package net.uiqui.woody.api;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import net.uiqui.woody.api.Listener;
-import net.uiqui.woody.api.Pusher;
 import net.uiqui.woody.util.DeamonFactory;
 
-public final class ListenerQueue<E> implements Pusher<E> {
-	private final BlockingQueue<E> queue = new LinkedBlockingQueue<E>();
+public class ActorQueue {
+	private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
 	private boolean running = true;
-
-	public ListenerQueue(final Listener<E> listener) {
+	private ActorWrapper actorWrapper = null;
+	
+	public ActorQueue(final Object actor) {
+		this.actorWrapper = new ActorWrapper(actor);
+		
 		DeamonFactory.run(new Runnable() {
 			@Override
 			public void run() {
-				E msg = null;
+				Object msg = null;
 						
 				while (isRunning()) {
 					try {
 						if (msg != null) {
-							listener.onMessage(msg);
+							actorWrapper.onMessage(msg);
 						}
 						
 						msg = queue.poll(5, TimeUnit.SECONDS);
@@ -48,8 +49,8 @@ public final class ListenerQueue<E> implements Pusher<E> {
 			}
 		});
 	}
-	
-	public void push(final E msg) {
+
+	public void push(final Object msg) {
 		if (isRunning()) {
 			queue.offer(msg);
 		}

@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2017 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,32 +17,10 @@
  */
 package net.uiqui.woody.api;
 
-import net.uiqui.woody.Broker;
-import net.uiqui.woody.util.ReferenceUtil;
+public class NotRegisteredError extends RuntimeException {
+	private static final long serialVersionUID = -3534330961877924666L;
 
-public abstract class Actor<E> implements Listener<E> {
-	private Endpoint endpoint = null;
-	
-	public Actor() {
-		this(ReferenceUtil.getReference());
-	}	
-	
-	public Actor(final String actorName) {
-		endpoint = Endpoint.getEndpointForActor(actorName);
-		Broker.register(endpoint, this);
+	public NotRegisteredError(final String name) {
+		super("Actor " + name + " not registed");
 	}
-	
-	public Endpoint endpoint() {
-		return endpoint;
-	}
-	
-	public void stop() {
-		Broker.unregister(endpoint);
-	}
-	
-	public void onMessage(final E msg) {
-		handle(msg);
-	}
-	
-	public abstract void handle(E msg);	
 }

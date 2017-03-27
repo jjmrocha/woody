@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2017 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,108 +17,109 @@
  */
 package net.uiqui.woody;
 
-import java.util.Collection;
+import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.uiqui.woody.api.Actor;
-import net.uiqui.woody.api.Endpoint;
-import net.uiqui.woody.api.Listener;
-import net.uiqui.woody.api.Pusher;
-import net.uiqui.woody.api.Topic;
-import net.uiqui.woody.api.impl.ListenerQueue;
-import net.uiqui.woody.error.NoPusherError;
+import net.uiqui.woody.annotations.Actor;
+import net.uiqui.woody.annotations.EventSubscription;
+import net.uiqui.woody.annotations.MessageHandler;
+import net.uiqui.woody.api.AlreadyRegisteredException;
+import net.uiqui.woody.api.Exchange;
+import net.uiqui.woody.api.InvalidActorException;
+import net.uiqui.woody.api.ActorQueue;
+import net.uiqui.woody.api.NotRegisteredError;
+import net.uiqui.woody.api.WoodyException;
+import net.uiqui.woody.util.ReferenceFactory;
 
 public class Broker {
-	private static final ConcurrentHashMap<Endpoint, Pusher<Object>> endpoints = new ConcurrentHashMap<Endpoint, Pusher<Object>>();
-	private static final ConcurrentHashMap<String, Topic> topics = new ConcurrentHashMap<String, Topic>();
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void register(final Endpoint endpoint, final Pusher pusher) {
-		endpoints.put(endpoint, pusher);
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static void register(final Endpoint endpoint, final Listener listener) {
-		register(endpoint, new ListenerQueue(listener));
-	}
-
-	@SuppressWarnings({ "rawtypes" })
-	public static void unregister(final Endpoint endpoint) {
-		final Pusher pusher = endpoints.remove(endpoint);
-
-		if (pusher != null && pusher instanceof ListenerQueue) {
-			((ListenerQueue) pusher).stop();
+	private static final ConcurrentHashMap<String, ActorQueue> actors = new ConcurrentHashMap<String, ActorQueue>();
+	private static final ConcurrentHashMap<Class<?>, Exchange> exchanges = new ConcurrentHashMap<Class<?>, Exchange>();
+	
+	public static String register(final Object actor) throws WoodyException {
+		if (isValidActor(actor)) {
+			final String name = getActorName(actor);
+			
+			if (!isRegisted(name)) {
+				actors.putIfAbsent(name, new ActorQueue(actor));
+				handleSubscriptions(name, actor);
+				
+				return name;
+			} else {
+				throw new AlreadyRegisteredException("The actor " + name + " is already registed");
+			}
+		} else {
+			throw new InvalidActorException("Class " + actor.getClass().getName() + " is not a valid actor");
 		}
 	}
 
-	public static boolean isRegisted(final Endpoint endpoint) {
-		return endpoints.containsKey(endpoint);
-	}
+	public static void unregister(final String name) {
+		final ActorQueue listenerQueue = actors.remove(name);
 
-	public static Collection<Endpoint> getEndpoints() {
-		return endpoints.keySet();
-	}
-
-	public static void register(final Topic topic) {
-		topics.put(topic.getName(), topic);
-		register(topic.endpoint(), topic);
-	}
-
-	public static void unregister(final Topic topic) {
-		topics.remove(topic.getName());
-		unregister(topic.endpoint());
-	}
-
-	public static Collection<String> getTopics() {
-		return topics.keySet();
-	}
-
-	public static Topic getTopic(final String topicName) {
-		Topic topic = topics.get(topicName);
-
-		if (topic == null) {
-			topic = createTopic(topicName);
+		if (listenerQueue != null) {
+			listenerQueue.stop();
 		}
-
-		return topic;
 	}
 
-	private static synchronized Topic createTopic(final String topicName) {
-		final Topic topic = topics.get(topicName);
-
-		if (topic != null) {
-			return topic;
-		}
-
-		return new Topic(topicName);
-	}
-
-	@SuppressWarnings("rawtypes")
-	public static void send(final Actor actor, final Object object) {
-		send(actor.endpoint(), object);
-	}
-
-	public static void send(final Topic topic, final Object object) {
-		topic.push(object);
-	}
-
-	public static void sendToTopic(final String topicName, final Object object) {
-		final Topic topic = topics.get(topicName);
-		send(topic, object);
+	public static boolean isRegisted(final String name) {
+		return actors.containsKey(name);
 	}
 	
-	public static void sendToActor(final String actorName, final Object object) {
-		final Endpoint endpoint = Endpoint.getEndpointForActor(actorName);
-		send(endpoint, object);
-	}	
-
-	public static void send(final Endpoint endpoint, final Object object) {
-		final Pusher<Object> pusher = endpoints.get(endpoint);
-
-		if (pusher != null) {
-			pusher.push(object);
+	public static void send(final String name, final Object msg) {
+		final ActorQueue queue = actors.get(name);
+		
+		if (queue != null) {
+			queue.push(msg);
 		} else {
-			throw new NoPusherError(endpoint);
+			throw new NotRegisteredError(name);
 		}
 	}
+	
+	public static void publish(final Object event) {
+		final Exchange exchange = exchanges.get(event.getClass());
+		
+		if (exchange != null) {
+			exchange.route(event);
+		}
+	}	
+
+	private static String getActorName(final Object actor) {
+		final Actor actorAnnotation = actor.getClass().getAnnotation(Actor.class);
+		
+		if (actorAnnotation != null && actorAnnotation.value() != null) {
+			return actorAnnotation.value();
+		}
+		
+		return ReferenceFactory.get();
+	}
+
+	private static boolean isValidActor(final Object actor) {		
+		for (Method method : actor.getClass().getMethods()) {
+			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
+			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
+			
+			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private static void handleSubscriptions(final String name, final Object actor) {
+		for (Method method : actor.getClass().getMethods()) {
+			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
+			
+			if (subscription != null && method.getParameterTypes().length == 1) {
+				subscribe(method.getParameterTypes()[0], name);
+			}
+		}
+	}
+
+	private static void subscribe(final Class<?> eventType, final String name) {
+		final Exchange exchange = exchanges.putIfAbsent(eventType, new Exchange(name));
+		
+		if (exchange != null) {
+			exchange.bind(name);
+		}
+	}	
 }

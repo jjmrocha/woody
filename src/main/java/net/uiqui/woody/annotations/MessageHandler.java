@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2017 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.error;
+package net.uiqui.woody.annotations;
 
-import net.uiqui.woody.api.Endpoint;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public class NoPusherError extends Error {
-	private static final long serialVersionUID = -3534330961877924666L;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-	public NoPusherError(final Endpoint endpoint) {
-		super("No router for endpoint: " + endpoint);
-	}
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface MessageHandler {
 }

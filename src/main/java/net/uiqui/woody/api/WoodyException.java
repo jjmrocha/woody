@@ -1,7 +1,7 @@
 /*
  * Woody - Basic Actor model implementation
  * 
- * Copyright (C) 2014-17 Joaquim Rocha <jrocha@gmailbox.org>
+ * Copyright (C) 2017 Joaquim Rocha <jrocha@gmailbox.org>
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,26 +15,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.util;
+package net.uiqui.woody.api;
 
-import java.security.SecureRandom;
+public class WoodyException extends Exception {
+	private static final long serialVersionUID = 7650349577411709674L;
 
-public class ReferenceUtil {
-	private static final SecureRandom numberGenerator = new SecureRandom();
-	
-	public static String getReference() {
-		final StringBuilder builder = new StringBuilder();
-		
-		for (int i = 0; i < 4; i++) {
-			final int randInt = numberGenerator.nextInt();
-			
-			if (i > 0) {
-				builder.append("-");
-			}
-			
-			builder.append(Integer.toHexString(randInt));
-		}
-
-		return builder.toString();
+	public WoodyException(final String message, final Throwable cause) {
+		super(message, cause);
 	}
+
+	public WoodyException(final String message) {
+		super(message);
+	}
+
+	public WoodyException(final Throwable cause) {
+		super(cause);
+	}
+
 }
