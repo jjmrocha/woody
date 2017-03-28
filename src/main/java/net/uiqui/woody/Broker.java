@@ -20,30 +20,31 @@ package net.uiqui.woody;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.uiqui.woody.annotations.Actor;
 import net.uiqui.woody.annotations.EventSubscription;
 import net.uiqui.woody.annotations.MessageHandler;
+import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.AlreadyRegisteredException;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.InvalidActorException;
-import net.uiqui.woody.api.ActorQueue;
 import net.uiqui.woody.api.NotRegisteredError;
 import net.uiqui.woody.api.WoodyException;
 import net.uiqui.woody.util.ReferenceFactory;
 
 public class Broker {
-	private static final ConcurrentHashMap<String, ActorQueue> actors = new ConcurrentHashMap<String, ActorQueue>();
+	private static final ConcurrentHashMap<String, ActorMailbox> actors = new ConcurrentHashMap<String, ActorMailbox>();
 	private static final ConcurrentHashMap<Class<?>, Exchange> exchanges = new ConcurrentHashMap<Class<?>, Exchange>();
 	
 	public static String register(final Object actor) throws WoodyException {
+		final String name = ReferenceFactory.get(); 
+		register(name, actor);
+		return name;
+	}
+	
+	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
-			final String name = getActorName(actor);
-			
 			if (!isRegisted(name)) {
-				actors.putIfAbsent(name, new ActorQueue(actor));
+				actors.putIfAbsent(name, new ActorMailbox(actor));
 				handleSubscriptions(name, actor);
-				
-				return name;
 			} else {
 				throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 			}
@@ -53,10 +54,10 @@ public class Broker {
 	}
 
 	public static void unregister(final String name) {
-		final ActorQueue listenerQueue = actors.remove(name);
+		final ActorMailbox mailbox = actors.remove(name);
 
-		if (listenerQueue != null) {
-			listenerQueue.stop();
+		if (mailbox != null) {
+			mailbox.close();
 		}
 	}
 
@@ -65,10 +66,10 @@ public class Broker {
 	}
 	
 	public static void send(final String name, final Object msg) {
-		final ActorQueue queue = actors.get(name);
+		final ActorMailbox mailbox = actors.get(name);
 		
-		if (queue != null) {
-			queue.push(msg);
+		if (mailbox != null) {
+			mailbox.send(msg);
 		} else {
 			throw new NotRegisteredError(name);
 		}
@@ -81,16 +82,6 @@ public class Broker {
 			exchange.route(event);
 		}
 	}	
-
-	private static String getActorName(final Object actor) {
-		final Actor actorAnnotation = actor.getClass().getAnnotation(Actor.class);
-		
-		if (actorAnnotation != null && actorAnnotation.value() != null) {
-			return actorAnnotation.value();
-		}
-		
-		return ReferenceFactory.get();
-	}
 
 	private static boolean isValidActor(final Object actor) {		
 		for (Method method : actor.getClass().getMethods()) {

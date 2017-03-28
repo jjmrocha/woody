@@ -23,12 +23,12 @@ import java.util.concurrent.TimeUnit;
 
 import net.uiqui.woody.util.DeamonFactory;
 
-public class ActorQueue {
+public class ActorMailbox {
 	private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
 	private boolean running = true;
 	private ActorWrapper actorWrapper = null;
 	
-	public ActorQueue(final Object actor) {
+	public ActorMailbox(final Object actor) {
 		this.actorWrapper = new ActorWrapper(actor);
 		
 		DeamonFactory.run(new Runnable() {
@@ -50,13 +50,13 @@ public class ActorQueue {
 		});
 	}
 
-	public void push(final Object msg) {
+	public void send(final Object msg) {
 		if (isRunning()) {
 			queue.offer(msg);
 		}
 	}
 
-	public synchronized void stop() {
+	public synchronized void close() {
 		if (running) {
 			running = false;
 			queue.clear();
