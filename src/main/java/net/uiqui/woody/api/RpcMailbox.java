@@ -17,26 +17,31 @@
  */
 package net.uiqui.woody.api;
 
-import java.lang.reflect.Method;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
-import net.uiqui.woody.annotations.EventSubscription;
-import net.uiqui.woody.annotations.MessageHandler;
+import net.uiqui.woody.api.error.CallTimeoutException;
 
-public class ActorWrapper extends DynamicInvoker {
-	public ActorWrapper(final Object actor) {
-		super(actor);
-		
-		for (Method method : actor.getClass().getMethods()) {
-			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
-			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
-			
-			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
-				addInvoker(method.getParameterTypes()[0], method);
-			}
-		}
+public class RpcMailbox implements Mailbox {
+	private final Semaphore semaphore = new Semaphore(0);
+	private Object value = null;
+	
+	@Override
+	public void deliver(final Object reply) {
+		value = reply;
+		semaphore.release();
 	}
 	
-	public void onMessage(final Object msg) {
-		invoke(msg);
+	@SuppressWarnings("unchecked")
+	public <T> T receiveReply(final long timeout) throws CallTimeoutException {
+		try {
+			if (semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
+				return (T) value;
+			} else {
+				throw new CallTimeoutException();
+			}
+		} catch (InterruptedException e) {
+			return null;
+		}
 	}
 }

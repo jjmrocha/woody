@@ -26,13 +26,18 @@ import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.ActorWrapper;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Mailbox;
+import net.uiqui.woody.api.RpcMailbox;
+import net.uiqui.woody.api.RpcRequest;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
+import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.InvalidActorException;
 import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
 import net.uiqui.woody.factory.ReferenceFactory;
 
 public class Broker {
+	private static final long DEFAULT_TIMEOUT = 5000;
+	
 	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
 	private static final ConcurrentHashMap<Class<?>, Exchange> exchanges = new ConcurrentHashMap<Class<?>, Exchange>();
 
@@ -45,7 +50,7 @@ public class Broker {
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
 			if (!isRegisted(name)) {
-				final ActorWrapper wrapper = new ActorWrapper(name, actor);
+				final ActorWrapper wrapper = new ActorWrapper(actor);
 				final Mailbox mailbox = new ActorMailbox(wrapper);
 				mailboxes.putIfAbsent(name, mailbox);
 				handleSubscriptions(name, actor);
@@ -80,6 +85,30 @@ public class Broker {
 
 		if (exchange != null) {
 			exchange.route(event);
+		}
+	}
+	
+	public static <T> T call(final String serverName, final Object msg) throws CallTimeoutException {
+		return call(serverName, msg, DEFAULT_TIMEOUT);
+	}
+	
+	public static <T> T call(final String serverName, final Object msg, final long timeout) throws CallTimeoutException {
+		final Mailbox serverMailbox = mailboxes.get(serverName);
+
+		if (serverMailbox != null) {
+			final String rpcName = ReferenceFactory.get();
+			final RpcMailbox rpcMailbox = new RpcMailbox();
+			final RpcRequest request = new RpcRequest(rpcName, msg);
+			
+			try {
+				mailboxes.put(rpcName, rpcMailbox);
+				serverMailbox.deliver(request);
+				return rpcMailbox.receiveReply(timeout);
+			} finally {
+				unregister(rpcName);
+			}
+		} else {
+			throw new NotRegisteredError(serverName);
 		}
 	}
 
