@@ -30,7 +30,7 @@ public class ActorWrapper {
 	private String name = null;
 	private Object actor = null;
 	
-	public ActorWrapper(final String name, Object actor) throws IllegalArgumentException, IllegalAccessException {
+	public ActorWrapper(final String name, Object actor) {
 		this.name = name;
 		this.actor = actor;
 		

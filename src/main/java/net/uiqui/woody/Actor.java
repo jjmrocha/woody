@@ -1,6 +1,6 @@
 package net.uiqui.woody;
 
-import net.uiqui.woody.api.WoodyException;
+import net.uiqui.woody.api.error.WoodyException;
 
 public abstract class Actor {
 	private String name = null;

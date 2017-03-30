@@ -24,32 +24,31 @@ import net.uiqui.woody.annotations.EventSubscription;
 import net.uiqui.woody.annotations.MessageHandler;
 import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.ActorWrapper;
-import net.uiqui.woody.api.AlreadyRegisteredException;
 import net.uiqui.woody.api.Exchange;
-import net.uiqui.woody.api.InvalidActorException;
-import net.uiqui.woody.api.NotRegisteredError;
-import net.uiqui.woody.api.WoodyException;
-import net.uiqui.woody.util.ReferenceFactory;
+import net.uiqui.woody.api.Mailbox;
+import net.uiqui.woody.api.error.AlreadyRegisteredException;
+import net.uiqui.woody.api.error.InvalidActorException;
+import net.uiqui.woody.api.error.NotRegisteredError;
+import net.uiqui.woody.api.error.WoodyException;
+import net.uiqui.woody.factory.ReferenceFactory;
 
 public class Broker {
-	private static final ConcurrentHashMap<String, ActorMailbox> actors = new ConcurrentHashMap<String, ActorMailbox>();
+	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
 	private static final ConcurrentHashMap<Class<?>, Exchange> exchanges = new ConcurrentHashMap<Class<?>, Exchange>();
-	
+
 	public static String register(final Object actor) throws WoodyException {
-		final String name = ReferenceFactory.get(); 
+		final String name = ReferenceFactory.get();
 		register(name, actor);
 		return name;
 	}
-	
+
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
 			if (!isRegisted(name)) {
-				try {
-					actors.putIfAbsent(name, new ActorMailbox(new ActorWrapper(name, actor)));
-					handleSubscriptions(name, actor);
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					throw new WoodyException("Error registing actor " + actor.getClass().getName() + " with name '" + name + "'", e);
-				}
+				final ActorWrapper wrapper = new ActorWrapper(name, actor);
+				final Mailbox mailbox = new ActorMailbox(wrapper);
+				mailboxes.putIfAbsent(name, mailbox);
+				handleSubscriptions(name, actor);
 			} else {
 				throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 			}
@@ -59,48 +58,48 @@ public class Broker {
 	}
 
 	public static void unregister(final String name) {
-		actors.remove(name);
+		mailboxes.remove(name);
 	}
 
 	public static boolean isRegisted(final String name) {
-		return actors.containsKey(name);
+		return mailboxes.containsKey(name);
 	}
-	
+
 	public static void send(final String name, final Object msg) {
-		final ActorMailbox mailbox = actors.get(name);
-		
+		final Mailbox mailbox = mailboxes.get(name);
+
 		if (mailbox != null) {
-			mailbox.send(msg);
+			mailbox.deliver(msg);
 		} else {
 			throw new NotRegisteredError(name);
 		}
 	}
-	
+
 	public static void publish(final Object event) {
 		final Exchange exchange = exchanges.get(event.getClass());
-		
+
 		if (exchange != null) {
 			exchange.route(event);
 		}
-	}	
+	}
 
-	private static boolean isValidActor(final Object actor) {		
+	private static boolean isValidActor(final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
 			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
 			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
-			
+
 			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	private static void handleSubscriptions(final String name, final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
 			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
-			
+
 			if (subscription != null && method.getParameterTypes().length == 1) {
 				subscribe(method.getParameterTypes()[0], name);
 			}
@@ -109,9 +108,9 @@ public class Broker {
 
 	private static void subscribe(final Class<?> eventType, final String name) {
 		final Exchange exchange = exchanges.putIfAbsent(eventType, new Exchange(name));
-		
+
 		if (exchange != null) {
 			exchange.bind(name);
 		}
-	}	
+	}
 }

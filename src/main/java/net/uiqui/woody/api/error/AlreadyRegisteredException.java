@@ -15,21 +15,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.error;
 
-public class WoodyException extends Exception {
-	private static final long serialVersionUID = 7650349577411709674L;
+public class AlreadyRegisteredException extends WoodyException {
+	private static final long serialVersionUID = -7078972879660868180L;
 
-	public WoodyException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
-
-	public WoodyException(final String message) {
+	public AlreadyRegisteredException(final String message) {
 		super(message);
 	}
-
-	public WoodyException(final Throwable cause) {
-		super(cause);
-	}
-
 }

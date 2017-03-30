@@ -15,32 +15,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.error;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+public class NotRegisteredError extends RuntimeException {
+	private static final long serialVersionUID = -3534330961877924666L;
 
-import net.uiqui.woody.Broker;
-import net.uiqui.woody.api.error.NotRegisteredError;
-
-public class Exchange {
-	private final Deque<String> subscribers = new ConcurrentLinkedDeque<String>();
-	
-	public Exchange(final String name) {
-		bind(name);
-	}
-
-	public void bind(final String name) {
-		subscribers.add(name);
-	}
-	
-	public void route(final Object msg) {
-		for (String name: subscribers) {
-			try {
-				Broker.send(name, msg);
-			} catch (NotRegisteredError e) {
-				subscribers.remove(name);
-			}
-		}
+	public NotRegisteredError(final String name) {
+		super("Actor " + name + " not registed");
 	}
 }

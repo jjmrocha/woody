@@ -21,9 +21,9 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import net.uiqui.woody.util.DeamonFactory;
+import net.uiqui.woody.factory.DeamonFactory;
 
-public class ActorMailbox {
+public class ActorMailbox implements Mailbox {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final Semaphore semaphore = new Semaphore(1); 
 	private ActorWrapper actorWrapper = null;
@@ -32,7 +32,8 @@ public class ActorMailbox {
 		this.actorWrapper = actor;
 	}
 
-	public void send(final Object msg) {
+	@Override
+	public void deliver(final Object msg) {
 		queue.offer(msg);
 		
 		if (semaphore.tryAcquire()) {

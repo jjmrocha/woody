@@ -15,12 +15,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.factory;
 
-public class AlreadyRegisteredException extends WoodyException {
-	private static final long serialVersionUID = -7078972879660868180L;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
-	public AlreadyRegisteredException(final String message) {
-		super(message);
-	}
+public class DeamonFactory {
+	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
+		@Override
+		public Thread newThread(final Runnable r) {
+			final Thread thread = new Thread(r);
+			thread.setDaemon(true);
+			return thread;
+		}
+	};
+	
+	private static final Executor THREAD_POOL = Executors.newCachedThreadPool(THREAD_FACTORY);
+
+	public static void spawn(final Runnable command) {
+		THREAD_POOL.execute(command);
+	}		
 }

@@ -15,12 +15,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.error;
 
-public class NotRegisteredError extends RuntimeException {
-	private static final long serialVersionUID = -3534330961877924666L;
+public class WoodyException extends Exception {
+	private static final long serialVersionUID = 7650349577411709674L;
 
-	public NotRegisteredError(final String name) {
-		super("Actor " + name + " not registed");
+	public WoodyException(final String message, final Throwable cause) {
+		super(message, cause);
 	}
+
+	public WoodyException(final String message) {
+		super(message);
+	}
+
+	public WoodyException(final Throwable cause) {
+		super(cause);
+	}
+
 }

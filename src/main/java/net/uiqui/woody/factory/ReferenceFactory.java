@@ -15,7 +15,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.util;
+package net.uiqui.woody.factory;
 
 import java.security.SecureRandom;
 

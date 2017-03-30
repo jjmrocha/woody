@@ -15,7 +15,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.error;
 
 public class InvalidActorException extends WoodyException {
 	private static final long serialVersionUID = -767592524615573663L;
