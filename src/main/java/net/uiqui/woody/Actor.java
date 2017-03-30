@@ -24,6 +24,7 @@ import net.uiqui.woody.annotations.MessageHandler;
 import net.uiqui.woody.api.DynamicInvoker;
 import net.uiqui.woody.api.RpcRequest;
 import net.uiqui.woody.api.error.CallTimeoutException;
+import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
 
 public abstract class Actor extends DynamicInvoker {
@@ -71,6 +72,10 @@ public abstract class Actor extends DynamicInvoker {
 	@MessageHandler
 	public void handleCall(final RpcRequest request) {
 		final Object reply = invoke(request.getPayload());
-		Broker.send(request.getReplyTo(), reply);
+		
+		try {
+			Broker.send(request.getReplyTo(), reply);
+		} catch(NotRegisteredError e) {
+		}
 	}
 }

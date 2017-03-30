@@ -40,28 +40,24 @@ public class ActorMailbox implements Mailbox {
 			schedule();
 		}
 	}
-	
+
 	private void schedule() {
 		DeamonFactory.spawn(new Runnable() {
 			@Override
 			public void run() {
-				process();
-				
-				if (queue.size() > 0 && semaphore.tryAcquire()) {
-					schedule();
-				}
-			}
+				do {
+					try {
+						do {
+							final Object msg = queue.poll();
 
-			private void process() {
-				try {
-					final Object msg = queue.poll();
-
-					if (msg != null) {
-						actorWrapper.onMessage(msg);
+							if (msg != null) {
+								actorWrapper.onMessage(msg);
+							}
+						} while (queue.size() > 0);
+					} finally {
+						semaphore.release();
 					}
-				} finally {
-					semaphore.release();
-				}
+				} while (queue.size() > 0 && semaphore.tryAcquire());
 			}
 		});
 	}
