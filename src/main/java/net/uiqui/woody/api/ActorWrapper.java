@@ -27,9 +27,11 @@ import net.uiqui.woody.annotations.MessageHandler;
 
 public class ActorWrapper {
 	private final Map<Class<?>, Method> methods = new HashMap<Class<?>, Method>();
+	private String name = null;
 	private Object actor = null;
 	
-	public ActorWrapper(final Object actor) {
+	public ActorWrapper(final String name, Object actor) throws IllegalArgumentException, IllegalAccessException {
+		this.name = name;
 		this.actor = actor;
 		
 		for (Method method : actor.getClass().getMethods()) {
@@ -38,6 +40,7 @@ public class ActorWrapper {
 			
 			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
 				methods.put(method.getParameterTypes()[0], method);
+				method.setAccessible(true);
 			}
 		}
 	}
@@ -49,7 +52,7 @@ public class ActorWrapper {
 			try {
 				method.invoke(actor, msg);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + actor.getClass().getName() + " with parameter of type " + msg.getClass().getName(), e);
+				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + actor.getClass().getName() + " (actor '" + name + "') with parameter of type " + msg.getClass().getName(), e);
 			}
 		}
 	}

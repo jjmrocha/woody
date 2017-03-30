@@ -31,31 +31,9 @@ public class DeamonFactory {
 		}
 	};
 	
-	private static final Executor THREAD_POOL = newCachedDaemonPool();
-	private static final Executor THREAD_QUEUE = newSingleDaemonExecutor();
-	
-	public static Executor newFixedDaemonPool(final int maxSize) {
-		return Executors.newFixedThreadPool(maxSize, THREAD_FACTORY);
-	}
-	
-	public static Executor newCachedDaemonPool() {
-		return Executors.newCachedThreadPool(THREAD_FACTORY);
-	}	
-	
-	public static Executor newSingleDaemonExecutor() {
-		return Executors.newSingleThreadExecutor(THREAD_FACTORY);
-	}	
-	
-	public static void run(final Runnable r) {
-		final Thread thread = THREAD_FACTORY.newThread(r);
-		thread.start();
-	}
-	
-	public static void spawn(final Runnable r) {
-		THREAD_POOL.execute(r);
-	}	
-	
-	public static void queue(final Runnable r) {
-		THREAD_QUEUE.execute(r);
+	private static final Executor THREAD_POOL = Executors.newCachedThreadPool(THREAD_FACTORY);
+
+	public static void spawn(final Runnable command) {
+		THREAD_POOL.execute(command);
 	}		
 }

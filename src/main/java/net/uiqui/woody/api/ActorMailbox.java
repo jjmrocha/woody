@@ -17,53 +17,41 @@
  */
 package net.uiqui.woody.api;
 
-import java.util.concurrent.BlockingQueue;
+import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Semaphore;
 
 import net.uiqui.woody.util.DeamonFactory;
 
 public class ActorMailbox {
-	private final BlockingQueue<Object> queue = new LinkedBlockingQueue<Object>();
-	private boolean running = true;
+	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
+	private final Semaphore semaphore = new Semaphore(1); 
 	private ActorWrapper actorWrapper = null;
 	
-	public ActorMailbox(final Object actor) {
-		this.actorWrapper = new ActorWrapper(actor);
-		
-		DeamonFactory.run(new Runnable() {
-			@Override
-			public void run() {
-				Object msg = null;
-						
-				while (isRunning()) {
-					try {
-						if (msg != null) {
-							actorWrapper.onMessage(msg);
-						}
-						
-						msg = queue.poll(5, TimeUnit.SECONDS);
-					} catch (InterruptedException e) {
-					}
-				}
-			}
-		});
+	public ActorMailbox(final ActorWrapper actor) {
+		this.actorWrapper = actor;
 	}
 
 	public void send(final Object msg) {
-		if (isRunning()) {
-			queue.offer(msg);
+		queue.offer(msg);
+		
+		if (semaphore.tryAcquire()) {
+			DeamonFactory.spawn(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						while (queue.size() > 0) {
+							final Object msg = queue.poll();
+							
+							if (msg != null) {
+								actorWrapper.onMessage(msg);
+							}
+						}							
+					} finally {
+						semaphore.release();
+					}
+				}
+			});
 		}
-	}
-
-	public synchronized void close() {
-		if (running) {
-			running = false;
-			queue.clear();
-		}
-	}
-
-	private synchronized boolean isRunning() {
-		return running;
 	}
 }

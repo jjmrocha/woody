@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.uiqui.woody.annotations.EventSubscription;
 import net.uiqui.woody.annotations.MessageHandler;
 import net.uiqui.woody.api.ActorMailbox;
+import net.uiqui.woody.api.ActorWrapper;
 import net.uiqui.woody.api.AlreadyRegisteredException;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.InvalidActorException;
@@ -43,8 +44,12 @@ public class Broker {
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
 			if (!isRegisted(name)) {
-				actors.putIfAbsent(name, new ActorMailbox(actor));
-				handleSubscriptions(name, actor);
+				try {
+					actors.putIfAbsent(name, new ActorMailbox(new ActorWrapper(name, actor)));
+					handleSubscriptions(name, actor);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new WoodyException("Error registing actor " + actor.getClass().getName() + " with name '" + name + "'", e);
+				}
 			} else {
 				throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 			}
@@ -54,11 +59,7 @@ public class Broker {
 	}
 
 	public static void unregister(final String name) {
-		final ActorMailbox mailbox = actors.remove(name);
-
-		if (mailbox != null) {
-			mailbox.close();
-		}
+		actors.remove(name);
 	}
 
 	public static boolean isRegisted(final String name) {
