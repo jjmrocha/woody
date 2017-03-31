@@ -19,7 +19,7 @@ package net.uiqui.woody.api;
 
 import java.lang.reflect.Method;
 
-import net.uiqui.woody.annotations.EventSubscription;
+import net.uiqui.woody.annotations.Subscription;
 import net.uiqui.woody.annotations.MessageHandler;
 
 public class ActorFacade extends Dynamic {
@@ -27,16 +27,31 @@ public class ActorFacade extends Dynamic {
 		super(actor);
 		
 		for (Method method : actor.getClass().getMethods()) {
-			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
-			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
-			
-			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
-				addTypeInvoker(method.getParameterTypes()[0], method);
-			}
+			if (method.getParameterTypes().length == 1) {
+				final MessageHandler handler = method.getAnnotation(MessageHandler.class);
+				
+				if (handler != null) {
+					addTypeInvoker(method.getParameterTypes()[0], method);
+				}
+				
+				final Subscription subscription = method.getAnnotation(Subscription.class);
+				
+				if (subscription != null && subscription.value() != null) {
+					addTypeInvoker(subscription.value(), method.getParameterTypes()[0], method);
+				}					
+			}		
 		}
 	}
 	
 	public void onMessage(final Object msg) {
-		invoke(msg);
+		if (msg instanceof Event) {
+			onEvent((Event) msg);
+		} else {
+			invoke(msg);
+		}
+	}
+	
+	private void onEvent(final Event event) {
+		invoke(event.getEventName(), event.getPayload());
 	}
 }

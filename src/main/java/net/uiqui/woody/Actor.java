@@ -47,8 +47,8 @@ public abstract class Actor extends Dynamic {
 		for (Method method : this.getClass().getMethods()) {
 			final CallHandler handler = method.getAnnotation(CallHandler.class);
 			
-			if (handler != null && method.getParameterTypes().length == 1 && method.getReturnType() != Void.class) {
-				addTypeInvoker(method.getParameterTypes()[0], method);
+			if (handler != null && handler.value() != null && method.getParameterTypes().length == 1 && method.getReturnType() != Void.class) {
+				addTypeInvoker(handler.value(), method.getParameterTypes()[0], method);
 			}
 		}
 	}
@@ -61,12 +61,12 @@ public abstract class Actor extends Dynamic {
 		Broker.send(name, msg);
 	}
 	
-	public <T> T call(final Object msg) throws CallTimeoutException {
-		return Broker.call(name, msg);
+	public <T> T call(final String operation, final Object msg) throws CallTimeoutException {
+		return Broker.call(name, operation, msg);
 	}
 	
-	public <T> T call(final Object msg, final long timeout) throws CallTimeoutException {
-		return Broker.call(name, msg, timeout);
+	public <T> T call(final String operation, final Object msg, final long timeout) throws CallTimeoutException {
+		return Broker.call(name, operation, msg, timeout);
 	}	
 	
 	public void close() {
@@ -75,7 +75,7 @@ public abstract class Actor extends Dynamic {
 	
 	@MessageHandler
 	public void handleCall(final CallRequest request) {
-		final Object reply = invoke(request.getPayload());
+		final Object reply = invoke(request.getOperation(), request.getPayload());
 		
 		try {
 			Broker.send(request.getReplyTo(), reply);

@@ -20,7 +20,7 @@ package net.uiqui.woody;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.uiqui.woody.annotations.EventSubscription;
+import net.uiqui.woody.annotations.Subscription;
 import net.uiqui.woody.annotations.MessageHandler;
 import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.ActorFacade;
@@ -28,6 +28,7 @@ import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Mailbox;
 import net.uiqui.woody.api.CallMailbox;
 import net.uiqui.woody.api.CallRequest;
+import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
 import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.InvalidActorException;
@@ -39,7 +40,7 @@ public class Broker {
 	private static final long DEFAULT_TIMEOUT = 5000;
 	
 	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
-	private static final ConcurrentHashMap<Class<?>, Exchange> exchanges = new ConcurrentHashMap<Class<?>, Exchange>();
+	private static final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
 
 	public static String register(final Object actor) throws WoodyException {
 		final String name = ReferenceFactory.get();
@@ -80,25 +81,25 @@ public class Broker {
 		}
 	}
 
-	public static void publish(final Object event) {
-		final Exchange exchange = exchanges.get(event.getClass());
+	public static void publish(final String eventName, final Object payload) {
+		final Exchange exchange = topics.get(eventName);
 
 		if (exchange != null) {
-			exchange.route(event);
+			exchange.route(new Event(eventName, payload));
 		}
 	}
 	
-	public static <T> T call(final String serverName, final Object msg) throws CallTimeoutException {
-		return call(serverName, msg, DEFAULT_TIMEOUT);
+	public static <T> T call(final String serverName, final String operation, final Object payload) throws CallTimeoutException {
+		return call(serverName, operation, payload, DEFAULT_TIMEOUT);
 	}
 	
-	public static <T> T call(final String serverName, final Object msg, final long timeout) throws CallTimeoutException {
+	public static <T> T call(final String serverName, final String operation, final Object payload, final long timeout) throws CallTimeoutException {
 		final Mailbox serverMailbox = mailboxes.get(serverName);
 
 		if (serverMailbox != null) {
 			final String callMailboxName = ReferenceFactory.get();
 			final CallMailbox callMailbox = new CallMailbox();
-			final CallRequest request = new CallRequest(callMailboxName, msg);
+			final CallRequest request = new CallRequest(operation, payload, callMailboxName);
 			
 			try {
 				mailboxes.put(callMailboxName, callMailbox);
@@ -115,9 +116,9 @@ public class Broker {
 	private static boolean isValidActor(final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
 			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
-			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
+			final Subscription subscription = method.getAnnotation(Subscription.class);
 
-			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
+			if ((handler != null || (subscription != null && subscription.value() != null)) && method.getParameterTypes().length == 1) {
 				return true;
 			}
 		}
@@ -127,16 +128,16 @@ public class Broker {
 
 	private static void registerSubscriptions(final String name, final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
-			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
+			final Subscription subscription = method.getAnnotation(Subscription.class);
 
-			if (subscription != null && method.getParameterTypes().length == 1) {
-				subscribe(method.getParameterTypes()[0], name);
+			if (subscription != null && subscription.value() != null && method.getParameterTypes().length == 1) {
+				subscribe(subscription.value(), name);
 			}
 		}
 	}
 
-	private static void subscribe(final Class<?> eventType, final String name) {
-		final Exchange exchange = exchanges.putIfAbsent(eventType, new Exchange(name));
+	private static void subscribe(final String eventName, final String name) {
+		final Exchange exchange = topics.putIfAbsent(eventName, new Exchange(name));
 
 		if (exchange != null) {
 			exchange.bind(name);

@@ -15,16 +15,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.annotations;
+package net.uiqui.woody.api;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+public class Event {
+	private String eventName = null;
+	private Object payload = null;
+	
+	public Event(final String eventName, final Object payload) {
+		this.eventName = eventName;
+		this.payload = payload;
+	}
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+	public String getEventName() {
+		return eventName;
+	}
 
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface EventSubscription {
-	String value();
+	public Object getPayload() {
+		return payload;
+	}
 }

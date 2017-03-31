@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Dynamic {
-	private final Map<Class<?>, Method> methods = new HashMap<Class<?>, Method>();
+	private static final String DEFAULT_KEY = "$$";
+	private final Map<MKey, Method> methods = new HashMap<MKey, Method>();
 	private Object target = null;
 	
 	public Dynamic(final Object target) {
@@ -35,12 +36,16 @@ public class Dynamic {
 	}
 
 	public void addTypeInvoker(final Class<?> type, final Method method) {
-		methods.put(type, method);
+		addTypeInvoker(DEFAULT_KEY, type, method);
+	}
+	
+	public void addTypeInvoker(final String key, final Class<?> type, final Method method) {
+		methods.put(new MKey(key, type), method);
 		method.setAccessible(true);
 	}
 
-	public Object invoke(final Object param) {
-		final Method method = getMethod(param);
+	public Object invoke(final String key, final Object param) {
+		final Method method = getMethod(key, param);
 		
 		if (method != null) {
 			try {
@@ -52,22 +57,68 @@ public class Dynamic {
 		
 		return null;
 	}
+	
+	public Object invoke(final Object param) {
+		return invoke(DEFAULT_KEY, param);
+	}
 
-	private Method getMethod(final Object param) {
+	private Method getMethod(final String key, final Object param) {
 		final Class<?> type = param.getClass();
-		final Method method = methods.get(type);
+		final MKey mKey = new MKey(key, type);
+		final Method method = methods.get(mKey);
 		
 		if (method != null) {
 			return method;
 		}
 		
-		for (Map.Entry<Class<?>, Method> entry : methods.entrySet()) {
-			if (entry.getKey().isAssignableFrom(type)) {
-				methods.put(type, entry.getValue());
+		for (Map.Entry<MKey, Method> entry : methods.entrySet()) {
+			final MKey entryMKey = entry.getKey();
+			
+			if (entryMKey.key.equals(key) && entryMKey.type.isAssignableFrom(type)) {
+				methods.put(mKey, entry.getValue());
 				return entry.getValue();
 			}
 		}
 		
 		return null;
+	}
+	
+	private static class MKey {
+		private String key = null;
+		private Class<?> type = null;
+		
+		public MKey(final String key, final Class<?> type) {
+			this.key = key;
+			this.type = type;
+		}
+
+		@Override
+		public int hashCode() {
+			int result = 31 + key.hashCode();
+			return 31 * result + type.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null) {
+				return false;
+			}
+			
+			if (obj instanceof MKey) {
+				final MKey other = (MKey) obj;
+				
+				if (!key.equals(other.key)) {
+					return false;
+				}
+				
+				if (!type.getName().equals(other.type.getName())) {
+					return false;
+				}
+				
+				return true;
+			}
+			
+			return false;
+		}
 	}
 }

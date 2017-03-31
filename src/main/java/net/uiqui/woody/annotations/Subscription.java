@@ -15,28 +15,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.annotations;
 
-public class CallRequest {
-	private String operation = null;
-	private Object payload = null;
-	private String replyTo = null;
-	
-	public CallRequest(final String operation, final Object payload, final String replyTo) {
-		this.operation = operation;
-		this.payload = payload;
-		this.replyTo = replyTo;
-	}
-	
-	public String getOperation() {
-		return operation;
-	}
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-	public Object getPayload() {
-		return payload;
-	}
-	
-	public String getReplyTo() {
-		return replyTo;
-	}
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface Subscription {
+	String value();
 }
