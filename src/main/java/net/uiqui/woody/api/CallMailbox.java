@@ -22,13 +22,13 @@ import java.util.concurrent.TimeUnit;
 
 import net.uiqui.woody.api.error.CallTimeoutException;
 
-public class RpcMailbox implements Mailbox {
+public class CallMailbox implements Mailbox {
 	private final Semaphore semaphore = new Semaphore(0);
-	private Object value = null;
+	private Object replyMsg = null;
 	
 	@Override
-	public void deliver(final Object reply) {
-		value = reply;
+	public void deliver(final Object replyMsg) {
+		this.replyMsg = replyMsg;
 		semaphore.release();
 	}
 	
@@ -36,7 +36,7 @@ public class RpcMailbox implements Mailbox {
 	public <T> T receiveReply(final long timeout) throws CallTimeoutException {
 		try {
 			if (semaphore.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
-				return (T) value;
+				return (T) replyMsg;
 			} else {
 				throw new CallTimeoutException();
 			}

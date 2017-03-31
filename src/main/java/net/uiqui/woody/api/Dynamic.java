@@ -22,39 +22,39 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DynamicInvoker {
+public class Dynamic {
 	private final Map<Class<?>, Method> methods = new HashMap<Class<?>, Method>();
-	private Object actor = null;
+	private Object target = null;
 	
-	public DynamicInvoker(final Object actor) {
-		this.actor = actor;
+	public Dynamic(final Object target) {
+		this.target = target;
 	}
 	
-	public DynamicInvoker() {
-		this.actor = this;
+	public Dynamic() {
+		this.target = this;
 	}
 
-	public void addInvoker(final Class<?> type, final Method method) {
+	public void addTypeInvoker(final Class<?> type, final Method method) {
 		methods.put(type, method);
 		method.setAccessible(true);
 	}
 
-	public Object invoke(final Object msg) {
-		final Method method = getMethod(msg);
+	public Object invoke(final Object param) {
+		final Method method = getMethod(param);
 		
 		if (method != null) {
 			try {
-				return method.invoke(actor, msg);
+				return method.invoke(target, param);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + actor.getClass().getName() + " with parameter of type " + msg.getClass().getName(), e);
+				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + target.getClass().getName() + " with parameter of type " + param.getClass().getName(), e);
 			}
 		}
 		
 		return null;
 	}
 
-	private Method getMethod(final Object msg) {
-		final Class<?> type = msg.getClass();
+	private Method getMethod(final Object param) {
+		final Class<?> type = param.getClass();
 		final Method method = methods.get(type);
 		
 		if (method != null) {

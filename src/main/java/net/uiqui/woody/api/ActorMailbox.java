@@ -25,40 +25,36 @@ import net.uiqui.woody.factory.DeamonFactory;
 
 public class ActorMailbox implements Mailbox {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
-	private final Semaphore semaphore = new Semaphore(1);
-	private ActorWrapper actorWrapper = null;
+	private final Semaphore singletonController = new Semaphore(1);
+	private ActorFacade actor = null;
 
-	public ActorMailbox(final ActorWrapper actor) {
-		this.actorWrapper = actor;
+	public ActorMailbox(final ActorFacade actor) {
+		this.actor = actor;
 	}
 
 	@Override
 	public void deliver(final Object msg) {
 		queue.offer(msg);
 
-		if (semaphore.tryAcquire()) {
-			schedule();
+		if (singletonController.tryAcquire()) {
+			DeamonFactory.spawn(new Runnable() {
+				@Override
+				public void run() {
+					do {
+						try {
+							do {
+								final Object msg = queue.poll();
+
+								if (msg != null) {
+									actor.onMessage(msg);
+								}
+							} while (queue.size() > 0);
+						} finally {
+							singletonController.release();
+						}
+					} while (queue.size() > 0 && singletonController.tryAcquire());
+				}
+			});
 		}
-	}
-
-	private void schedule() {
-		DeamonFactory.spawn(new Runnable() {
-			@Override
-			public void run() {
-				do {
-					try {
-						do {
-							final Object msg = queue.poll();
-
-							if (msg != null) {
-								actorWrapper.onMessage(msg);
-							}
-						} while (queue.size() > 0);
-					} finally {
-						semaphore.release();
-					}
-				} while (queue.size() > 0 && semaphore.tryAcquire());
-			}
-		});
 	}
 }

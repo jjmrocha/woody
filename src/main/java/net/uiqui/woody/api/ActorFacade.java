@@ -17,20 +17,26 @@
  */
 package net.uiqui.woody.api;
 
-public class RpcRequest {
-	private String replyTo = null;
-	private Object payload = null;
+import java.lang.reflect.Method;
+
+import net.uiqui.woody.annotations.EventSubscription;
+import net.uiqui.woody.annotations.MessageHandler;
+
+public class ActorFacade extends Dynamic {
+	public ActorFacade(final Object actor) {
+		super(actor);
+		
+		for (Method method : actor.getClass().getMethods()) {
+			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
+			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
+			
+			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
+				addTypeInvoker(method.getParameterTypes()[0], method);
+			}
+		}
+	}
 	
-	public RpcRequest(final String replyTo, final Object payload) {
-		this.replyTo = replyTo;
-		this.payload = payload;
-	}
-
-	public String getReplyTo() {
-		return replyTo;
-	}
-
-	public Object getPayload() {
-		return payload;
+	public void onMessage(final Object msg) {
+		invoke(msg);
 	}
 }

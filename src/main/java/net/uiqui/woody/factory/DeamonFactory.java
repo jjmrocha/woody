@@ -30,10 +30,20 @@ public class DeamonFactory {
 			return thread;
 		}
 	};
-	
+
 	private static final Executor THREAD_POOL = Executors.newCachedThreadPool(THREAD_FACTORY);
+	private static final Executor THREAD_QUEUE = Executors.newSingleThreadExecutor(THREAD_FACTORY);
 
 	public static void spawn(final Runnable command) {
 		THREAD_POOL.execute(command);
-	}		
+	}
+
+	public static void run(final Runnable command) {
+		final Thread thread = THREAD_FACTORY.newThread(command);
+		thread.start();
+	}
+
+	public static void queue(final Runnable r) {
+		THREAD_QUEUE.execute(r);
+	}
 }

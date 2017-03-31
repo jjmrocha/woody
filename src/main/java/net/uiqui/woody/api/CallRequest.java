@@ -17,26 +17,20 @@
  */
 package net.uiqui.woody.api;
 
-import java.lang.reflect.Method;
-
-import net.uiqui.woody.annotations.EventSubscription;
-import net.uiqui.woody.annotations.MessageHandler;
-
-public class ActorWrapper extends DynamicInvoker {
-	public ActorWrapper(final Object actor) {
-		super(actor);
-		
-		for (Method method : actor.getClass().getMethods()) {
-			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
-			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
-			
-			if ((handler != null || subscription != null) && method.getParameterTypes().length == 1) {
-				addInvoker(method.getParameterTypes()[0], method);
-			}
-		}
-	}
+public class CallRequest {
+	private String replyTo = null;
+	private Object payload = null;
 	
-	public void onMessage(final Object msg) {
-		invoke(msg);
+	public CallRequest(final String replyTo, final Object payload) {
+		this.replyTo = replyTo;
+		this.payload = payload;
+	}
+
+	public String getReplyTo() {
+		return replyTo;
+	}
+
+	public Object getPayload() {
+		return payload;
 	}
 }

@@ -23,11 +23,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.uiqui.woody.annotations.EventSubscription;
 import net.uiqui.woody.annotations.MessageHandler;
 import net.uiqui.woody.api.ActorMailbox;
-import net.uiqui.woody.api.ActorWrapper;
+import net.uiqui.woody.api.ActorFacade;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Mailbox;
-import net.uiqui.woody.api.RpcMailbox;
-import net.uiqui.woody.api.RpcRequest;
+import net.uiqui.woody.api.CallMailbox;
+import net.uiqui.woody.api.CallRequest;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
 import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.InvalidActorException;
@@ -50,10 +50,10 @@ public class Broker {
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
 			if (!isRegisted(name)) {
-				final ActorWrapper wrapper = new ActorWrapper(actor);
+				final ActorFacade wrapper = new ActorFacade(actor);
 				final Mailbox mailbox = new ActorMailbox(wrapper);
 				mailboxes.putIfAbsent(name, mailbox);
-				handleSubscriptions(name, actor);
+				registerSubscriptions(name, actor);
 			} else {
 				throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 			}
@@ -96,16 +96,16 @@ public class Broker {
 		final Mailbox serverMailbox = mailboxes.get(serverName);
 
 		if (serverMailbox != null) {
-			final String rpcName = ReferenceFactory.get();
-			final RpcMailbox rpcMailbox = new RpcMailbox();
-			final RpcRequest request = new RpcRequest(rpcName, msg);
+			final String callMailboxName = ReferenceFactory.get();
+			final CallMailbox callMailbox = new CallMailbox();
+			final CallRequest request = new CallRequest(callMailboxName, msg);
 			
 			try {
-				mailboxes.put(rpcName, rpcMailbox);
+				mailboxes.put(callMailboxName, callMailbox);
 				serverMailbox.deliver(request);
-				return rpcMailbox.receiveReply(timeout);
+				return callMailbox.receiveReply(timeout);
 			} finally {
-				unregister(rpcName);
+				unregister(callMailboxName);
 			}
 		} else {
 			throw new NotRegisteredError(serverName);
@@ -125,7 +125,7 @@ public class Broker {
 		return false;
 	}
 
-	private static void handleSubscriptions(final String name, final Object actor) {
+	private static void registerSubscriptions(final String name, final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
 			final EventSubscription subscription = method.getAnnotation(EventSubscription.class);
 
