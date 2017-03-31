@@ -81,11 +81,11 @@ public class Broker {
 		}
 	}
 
-	public static void publish(final String eventName, final Object payload) {
-		final Exchange exchange = topics.get(eventName);
+	public static void publish(final String topic, final Object payload) {
+		final Exchange exchange = topics.get(topic);
 
 		if (exchange != null) {
-			exchange.route(new Event(eventName, payload));
+			exchange.route(new Event(topic, payload));
 		}
 	}
 	
@@ -136,11 +136,11 @@ public class Broker {
 		}
 	}
 
-	private static void subscribe(final String eventName, final String name) {
-		final Exchange exchange = topics.putIfAbsent(eventName, new Exchange(name));
+	private static void subscribe(final String topic, final String subscriber) {
+		final Exchange exchange = topics.putIfAbsent(topic, new Exchange(subscriber));
 
 		if (exchange != null) {
-			exchange.bind(name);
+			exchange.bind(subscriber);
 		}
 	}
 }

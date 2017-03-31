@@ -52,6 +52,6 @@ public class ActorFacade extends Dynamic {
 	}
 	
 	private void onEvent(final Event event) {
-		invoke(event.getEventName(), event.getPayload());
+		invoke(event.getTopic(), event.getPayload());
 	}
 }

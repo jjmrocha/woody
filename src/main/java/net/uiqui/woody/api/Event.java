@@ -18,16 +18,16 @@
 package net.uiqui.woody.api;
 
 public class Event {
-	private String eventName = null;
+	private String topic = null;
 	private Object payload = null;
 	
-	public Event(final String eventName, final Object payload) {
-		this.eventName = eventName;
+	public Event(final String topic, final Object payload) {
+		this.topic = topic;
 		this.payload = payload;
 	}
 
-	public String getEventName() {
-		return eventName;
+	public String getTopic() {
+		return topic;
 	}
 
 	public Object getPayload() {
