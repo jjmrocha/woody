@@ -31,7 +31,9 @@ public class Exchange {
 	}
 
 	public void bind(final String name) {
-		subscribers.add(name);
+		if (!subscribers.contains(name)) {
+			subscribers.add(name);
+		}
 	}
 	
 	public void route(final Object msg) {
