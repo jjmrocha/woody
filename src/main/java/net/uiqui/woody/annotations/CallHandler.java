@@ -23,8 +23,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * The Interface CallHandler.
+ */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface CallHandler {
+	
+	/**
+	 * Value.
+	 *
+	 * @return the string
+	 */
 	String value();
 }

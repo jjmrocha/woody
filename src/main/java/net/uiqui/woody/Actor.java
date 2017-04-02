@@ -27,9 +27,18 @@ import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
 
+/**
+ * The Class Actor.
+ */
 public abstract class Actor extends Dynamic {
 	private String name = null;
 	
+	/**
+	 * Instantiates a new actor.
+	 *
+	 * @param name the name
+	 * @throws WoodyException the woody exception
+	 */
 	public Actor(final String name) throws WoodyException {
 		super();
 		this.name = name;
@@ -37,6 +46,11 @@ public abstract class Actor extends Dynamic {
 		setup();
 	}
 
+	/**
+	 * Instantiates a new actor.
+	 *
+	 * @throws WoodyException the woody exception
+	 */
 	public Actor() throws WoodyException {
 		super();
 		this.name = Broker.register(this);
@@ -53,26 +67,63 @@ public abstract class Actor extends Dynamic {
 		}
 	}
 	
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 	
+	/**
+	 * Send.
+	 *
+	 * @param msg the msg
+	 */
 	public void send(final Object msg) {
 		Broker.send(name, msg);
 	}
 	
+	/**
+	 * Call.
+	 *
+	 * @param <T> the generic type
+	 * @param operation the operation
+	 * @param msg the msg
+	 * @return the t
+	 * @throws CallTimeoutException the call timeout exception
+	 */
 	public <T> T call(final String operation, final Object msg) throws CallTimeoutException {
 		return Broker.call(name, operation, msg);
 	}
 	
+	/**
+	 * Call.
+	 *
+	 * @param <T> the generic type
+	 * @param operation the operation
+	 * @param msg the msg
+	 * @param timeout the timeout
+	 * @return the t
+	 * @throws CallTimeoutException the call timeout exception
+	 */
 	public <T> T call(final String operation, final Object msg, final long timeout) throws CallTimeoutException {
 		return Broker.call(name, operation, msg, timeout);
 	}	
 	
+	/**
+	 * Close.
+	 */
 	public void close() {
 		Broker.unregister(name);
 	}
 	
+	/**
+	 * Handle call.
+	 *
+	 * @param request the request
+	 */
 	@MessageHandler
 	public void handleCall(final CallRequest request) {
 		final Object reply = invoke(request.getOperation(), request.getPayload());

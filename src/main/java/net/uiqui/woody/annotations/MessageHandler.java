@@ -23,6 +23,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * The Interface MessageHandler.
+ */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface MessageHandler {

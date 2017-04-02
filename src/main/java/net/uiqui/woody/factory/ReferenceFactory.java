@@ -19,9 +19,17 @@ package net.uiqui.woody.factory;
 
 import java.security.SecureRandom;
 
+/**
+ * A factory for creating Reference objects.
+ */
 public class ReferenceFactory {
 	private static final SecureRandom numberGenerator = new SecureRandom();
 	
+	/**
+	 * Gets the.
+	 *
+	 * @return the string
+	 */
 	public static String get() {
 		final StringBuilder builder = new StringBuilder();
 		

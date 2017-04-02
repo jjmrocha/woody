@@ -23,8 +23,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+/**
+ * The Interface Subscription.
+ */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface Subscription {
+	
+	/**
+	 * Value.
+	 *
+	 * @return the string
+	 */
 	String value();
 }

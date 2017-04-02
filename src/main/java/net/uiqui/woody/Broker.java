@@ -36,18 +36,35 @@ import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
 import net.uiqui.woody.factory.ReferenceFactory;
 
+/**
+ * The Class Broker.
+ */
 public class Broker {
 	private static final long DEFAULT_TIMEOUT = 5000;
 	
 	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
 	private static final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
 
+	/**
+	 * Register.
+	 *
+	 * @param actor the actor
+	 * @return the string
+	 * @throws WoodyException the woody exception
+	 */
 	public static String register(final Object actor) throws WoodyException {
 		final String name = ReferenceFactory.get();
 		register(name, actor);
 		return name;
 	}
 
+	/**
+	 * Register.
+	 *
+	 * @param name the name
+	 * @param actor the actor
+	 * @throws WoodyException the woody exception
+	 */
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
 			if (!isRegisted(name)) {
@@ -63,14 +80,31 @@ public class Broker {
 		}
 	}
 
+	/**
+	 * Unregister.
+	 *
+	 * @param name the name
+	 */
 	public static void unregister(final String name) {
 		mailboxes.remove(name);
 	}
 
+	/**
+	 * Checks if is registed.
+	 *
+	 * @param name the name
+	 * @return true, if is registed
+	 */
 	public static boolean isRegisted(final String name) {
 		return mailboxes.containsKey(name);
 	}
 
+	/**
+	 * Send.
+	 *
+	 * @param name the name
+	 * @param msg the msg
+	 */
 	public static void send(final String name, final Object msg) {
 		final Mailbox mailbox = mailboxes.get(name);
 
@@ -81,6 +115,12 @@ public class Broker {
 		}
 	}
 
+	/**
+	 * Publish.
+	 *
+	 * @param topic the topic
+	 * @param payload the payload
+	 */
 	public static void publish(final String topic, final Object payload) {
 		final Exchange exchange = topics.get(topic);
 
@@ -89,10 +129,31 @@ public class Broker {
 		}
 	}
 	
+	/**
+	 * Call.
+	 *
+	 * @param <T> the generic type
+	 * @param serverName the server name
+	 * @param operation the operation
+	 * @param payload the payload
+	 * @return the t
+	 * @throws CallTimeoutException the call timeout exception
+	 */
 	public static <T> T call(final String serverName, final String operation, final Object payload) throws CallTimeoutException {
 		return call(serverName, operation, payload, DEFAULT_TIMEOUT);
 	}
 	
+	/**
+	 * Call.
+	 *
+	 * @param <T> the generic type
+	 * @param serverName the server name
+	 * @param operation the operation
+	 * @param payload the payload
+	 * @param timeout the timeout
+	 * @return the t
+	 * @throws CallTimeoutException the call timeout exception
+	 */
 	public static <T> T call(final String serverName, final String operation, final Object payload, final long timeout) throws CallTimeoutException {
 		final Mailbox serverMailbox = mailboxes.get(serverName);
 

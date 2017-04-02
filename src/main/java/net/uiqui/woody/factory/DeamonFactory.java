@@ -21,8 +21,11 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * A factory for creating Deamon objects.
+ */
 public class DeamonFactory {
-	private static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
+	protected static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
 		@Override
 		public Thread newThread(final Runnable r) {
 			final Thread thread = new Thread(r);
@@ -34,16 +37,31 @@ public class DeamonFactory {
 	private static final Executor THREAD_POOL = Executors.newCachedThreadPool(THREAD_FACTORY);
 	private static final Executor THREAD_QUEUE = Executors.newSingleThreadExecutor(THREAD_FACTORY);
 
+	/**
+	 * Spawn.
+	 *
+	 * @param command the command
+	 */
 	public static void spawn(final Runnable command) {
 		THREAD_POOL.execute(command);
 	}
 
+	/**
+	 * Run.
+	 *
+	 * @param command the command
+	 */
 	public static void run(final Runnable command) {
 		final Thread thread = THREAD_FACTORY.newThread(command);
 		thread.start();
 	}
 
-	public static void queue(final Runnable r) {
-		THREAD_QUEUE.execute(r);
+	/**
+	 * Queue.
+	 *
+	 * @param command the command
+	 */
+	public static void queue(final Runnable command) {
+		THREAD_QUEUE.execute(command);
 	}
 }
