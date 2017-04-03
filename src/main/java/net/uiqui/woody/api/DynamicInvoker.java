@@ -17,7 +17,6 @@
  */
 package net.uiqui.woody.api;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +49,7 @@ public class DynamicInvoker {
 		if (method != null) {
 			try {
 				return method.invoke(target, param);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			} catch (Exception e) {
 				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + target.getClass().getName() + " with parameter of type " + param.getClass().getName(), e);
 			}
 		}
