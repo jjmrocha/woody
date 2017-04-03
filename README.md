@@ -129,11 +129,17 @@ The caller send a message to the actor, the actor computes a response a returns 
 		}
 	};
 	
-	Integer sum = actor3.call("add", new Parameters(2, 3));
-	System.out.println(sum);
-	
-	Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3));
-	System.out.println(product);
+	try {
+		// If the call take more than 5000 milliseconds (the default value) the caller will receive a CallTimeoutException
+		Integer sum = actor3.call("add", new Parameters(2, 3));
+		System.out.println(sum);
+		
+		// We can specify a timeout for the call
+		Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3), 10);
+		System.out.println(product);
+	} catch (CallTimeoutException e) {
+		System.err.println("Computation took to long, we received a timeout");
+	}
 ```
 
 
