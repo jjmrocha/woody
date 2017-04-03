@@ -22,16 +22,16 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Dynamic {
+public class DynamicInvoker {
 	private static final String DEFAULT_KEY = "$$";
 	private final Map<MKey, Method> methods = new HashMap<MKey, Method>();
 	private Object target = null;
 	
-	public Dynamic(final Object target) {
+	public DynamicInvoker(final Object target) {
 		this.target = target;
 	}
 	
-	public Dynamic() {
+	public DynamicInvoker() {
 		this.target = this;
 	}
 

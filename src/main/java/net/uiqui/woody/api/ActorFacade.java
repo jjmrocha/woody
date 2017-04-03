@@ -20,15 +20,15 @@ package net.uiqui.woody.api;
 import java.lang.reflect.Method;
 
 import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.annotations.MessageHandler;
+import net.uiqui.woody.annotations.CastHandler;
 
-public class ActorFacade extends Dynamic {
+public class ActorFacade extends DynamicInvoker {
 	public ActorFacade(final Object actor) {
 		super(actor);
 		
 		for (Method method : actor.getClass().getMethods()) {
 			if (method.getParameterTypes().length == 1) {
-				final MessageHandler handler = method.getAnnotation(MessageHandler.class);
+				final CastHandler handler = method.getAnnotation(CastHandler.class);
 				
 				if (handler != null) {
 					addTypeInvoker(method.getParameterTypes()[0], method);

@@ -1,76 +1,141 @@
-woody 
-=====
+# WOODY 
+
+## Introduction
+
+Woody is basic implementation of the actor model implementation.
+This implementation is heavily influenced by Erlang.
 
 
-##Introduction
-
-  Basic actor model implementation in JAVA.
-  
-  
-##Instalation
+## Instalation
 
 Maven dependency:
  
- ```xml
-<dependency>
-    <groupId>net.uiqui</groupId>
-    <artifactId>woody</artifactId>
-    <version>1.2.0</version>
-</dependency>
- ```
+```xml
+	<dependency>
+	    <groupId>net.uiqui</groupId>
+	    <artifactId>woody</artifactId>
+	    <version>2.0.0</version>
+	</dependency>
+```
+
  
- 
-##API
+## API
 
 ### Actor
- 
- ```java
-// An actor receives messages sent to the actor address automatically
-Actor<String> actorStr = new Actor<String>() {
-	@Override
-	public void handle(String msg) {
-		System.out.println("Message received: " + msg);
-	}
-};
+> The actor model in computer science is a mathematical model of concurrent computation that treats "actors" as the universal 
+> primitives of concurrent computation. In response to a message that it receives, an actor can: make local decisions, create 
+> more actors, send more messages, and determine how to respond to the next message received. Actors may modify private state, 
+> but can only affect each other through messages (avoiding the need for any locks).
+*Wikipedia*
 
- ```
- 
+
+##### Pojo Actor
+
+```java
+	// Any class can be an actor
+	public class PojoActor1 {
+		@CastHandler
+		public void handleCast(String msg) {
+			System.out.println("Received: " + msg);
+		}
+	}
+	
+	// Register actor
+	Woody.register("pojo1", new PojoActor1());
+	
+	// Send a message to actor
+	Woody.cast("pojo1", "Hello pojo!");
+```
+
+
+##### Actor Class
+
+```java
+	// Extending the Actor class the actor is automatically registered
+	Actor actor1 = new Actor() {
+		@CastHandler
+		public void handleCast(String msg) {
+			System.out.println("[" + getName() + "] Received: " + msg);
+		}
+	};
+	
+	// We can use the actor method cast to send an asynchronously message
+	actor1.cast("Hello actor {1}");
+	
+	// But we can still send a message using Woody
+	Woody.cast(actor1.getName(), "Hello actor {2}");
+```
+
  
 ### Topic
+Topics can be use to deliver events to many actors (subscribers of the topic).
 
- ```java
-// When we create a Topic it becomes automatically registered
-Topic errorTopic = new Topic("error");
 
-// If a topic don't exists the broker creates one, if exists the broker returns the Topic instance
-Topic eventTopic = Broker.getTopic("event");
+##### Pojo Actor
 
-// An Actor can subscribe and topic
-errorTopic.subscribe(bot);
+```java
+	public class PojoActor2 {
+		@Subscription("ping")
+		public void ping(Integer msg) {
+			System.out.println("ping: " + msg);
+		}
+	}
+	
+	// When we register and actor without providing a name for the actor
+	// the register returns the generated name 
+	String actorName = Woody.register(new PojoActor2());
+	
+	for (int i = 0; i < 5; i ++) {
+		// The event is published to a topic
+		Woody.publish("ping", i);
+		Runner.sleep(1, TimeUnit.SECONDS);
+	}
+```
 
-// A Topic can also subscribe a Topic 
-errorTopic.subscribe(eventTopic);
- ```
- 
 
-### Broker & Sending Messages
+##### Actor Class
 
- ```java
-// Send messages to an actor
-Broker.send(bot, new Event());
+```java
+	// We can specify the actor's name on the constructor 
+	Actor actor2 = new Actor("actor2") {
+		@Subscription("ping")
+		public void event(Integer msg) {
+			System.out.println("[" + getName() + "] event: " + msg);
+		}			
+	};
+	
+	for (int i = 0; i < 5; i ++) {
+		// The event is published to a topic
+		Woody.publish("ping", i);
+		Runner.sleep(1, TimeUnit.SECONDS);
+	}
+```
 
-// Send messages to a topic
-Broker.send(eventTopic, new Event());
-Broker.sendToTopic("error", new Event());
 
-// Send messages using actor/topic endpoint
-Endpoint serverEndpoint = Endpoint.getEndpointForActor("serverName");
-Broker.send(serverEndpoint, new Event());
+### RPC
+The RPC mechanism is implemented by sending messages.
+The caller send a message to the actor, the actor computes a response a returns it by sending a message to the caller.
 
-Broker.send(actorStr.endpoint(), "Test"); 
+```java
+	Actor actor3 = new Actor("calculator") {
+		@CallHandler("add")
+		public Integer add(Parameters param) {
+			return param.getA() + param.getB();
+		}
+		
+		@CallHandler("multiply")
+		public Integer multiply(Parameters param) {
+			return param.getA() * param.getB();
+		}
+	};
+	
+	Integer sum = actor3.call("add", new Parameters(2, 3));
+	System.out.println(sum);
+	
+	Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3));
+	System.out.println(product);
+```
 
-Broker.send(errorTopic.endpoint(), new Event()); 
- ```
 
-##License
+## License
 [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)

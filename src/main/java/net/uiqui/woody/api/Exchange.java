@@ -20,7 +20,7 @@ package net.uiqui.woody.api;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import net.uiqui.woody.Broker;
+import net.uiqui.woody.Woody;
 import net.uiqui.woody.api.error.NotRegisteredError;
 
 public class Exchange {
@@ -39,7 +39,7 @@ public class Exchange {
 	public void route(final Object msg) {
 		for (String name: subscribers) {
 			try {
-				Broker.send(name, msg);
+				Woody.cast(name, msg);
 			} catch (NotRegisteredError e) {
 				subscribers.remove(name);
 			}

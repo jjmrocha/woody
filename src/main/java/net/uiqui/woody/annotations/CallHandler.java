@@ -24,16 +24,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The Interface CallHandler.
+ * The CallHandler annotation is use mark methods that support RPC calls 
  */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface CallHandler {
-	
-	/**
-	 * Value.
-	 *
-	 * @return the string
-	 */
 	String value();
 }

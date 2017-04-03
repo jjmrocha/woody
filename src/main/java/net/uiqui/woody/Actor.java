@@ -20,40 +20,40 @@ package net.uiqui.woody;
 import java.lang.reflect.Method;
 
 import net.uiqui.woody.annotations.CallHandler;
-import net.uiqui.woody.annotations.MessageHandler;
-import net.uiqui.woody.api.Dynamic;
+import net.uiqui.woody.annotations.CastHandler;
+import net.uiqui.woody.api.DynamicInvoker;
 import net.uiqui.woody.api.CallRequest;
 import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
 
 /**
- * The Class Actor.
+ * The Class Actor provides the auto registration mechanics and is mandatory for RPC support.
  */
-public abstract class Actor extends Dynamic {
+public abstract class Actor extends DynamicInvoker {
 	private String name = null;
 	
 	/**
 	 * Instantiates a new actor.
 	 *
-	 * @param name the name
-	 * @throws WoodyException the woody exception
+	 * @param name the actor registration name
+	 * @throws WoodyException thrown when an error occurred during actor's registering 
 	 */
 	public Actor(final String name) throws WoodyException {
 		super();
 		this.name = name;
-		Broker.register(name, this);
+		Woody.register(name, this);
 		setup();
 	}
 
 	/**
 	 * Instantiates a new actor.
 	 *
-	 * @throws WoodyException the woody exception
+	 * @throws WoodyException thrown when an error occurred during actor's registering 
 	 */
 	public Actor() throws WoodyException {
 		super();
-		this.name = Broker.register(this);
+		this.name = Woody.register(this);
 		setup();
 	}
 	
@@ -68,68 +68,65 @@ public abstract class Actor extends Dynamic {
 	}
 	
 	/**
-	 * Gets the name.
+	 * Returns the actor's name
 	 *
-	 * @return the name
+	 * @return the actor's name
 	 */
 	public String getName() {
 		return name;
 	}
 	
 	/**
-	 * Send.
+	 * Send a message asynchronously to the actor instance 
+	 * the message will be delivered to a method marked with
+	 * the CastHandler annotation  
 	 *
-	 * @param msg the msg
+	 * @param msg message to send asynchronously
 	 */
-	public void send(final Object msg) {
-		Broker.send(name, msg);
+	public void cast(final Object msg) {
+		Woody.cast(name, msg);
 	}
 	
 	/**
-	 * Call.
+	 * Invokes asynchronously one of the methods marked with the CallHandler
+	 * annotation for the operation.
 	 *
-	 * @param <T> the generic type
-	 * @param operation the operation
-	 * @param msg the msg
-	 * @return the t
-	 * @throws CallTimeoutException the call timeout exception
+	 * @param operation name of the operation to invoke
+	 * @param payload call's argument
+	 * @return the method's return value
+	 * @throws CallTimeoutException thrown if the call took more time than the default timeout threshold
 	 */
-	public <T> T call(final String operation, final Object msg) throws CallTimeoutException {
-		return Broker.call(name, operation, msg);
+	public <T> T call(final String operation, final Object payload) throws CallTimeoutException {
+		return Woody.call(name, operation, payload);
 	}
 	
 	/**
-	 * Call.
+	 * Invokes asynchronously one of the methods marked with the CallHandler
+	 * annotation for the operation.
 	 *
-	 * @param <T> the generic type
-	 * @param operation the operation
-	 * @param msg the msg
-	 * @param timeout the timeout
-	 * @return the t
-	 * @throws CallTimeoutException the call timeout exception
+	 * @param operation name of the operation to invoke
+	 * @param payload call's argument
+	 * @param timeout timeout threshold in milliseconds
+	 * @return the method's return value
+	 * @throws CallTimeoutException thrown if the call took more time than the timeout threshold
 	 */
-	public <T> T call(final String operation, final Object msg, final long timeout) throws CallTimeoutException {
-		return Broker.call(name, operation, msg, timeout);
+	public <T> T call(final String operation, final Object payload, final long timeout) throws CallTimeoutException {
+		return Woody.call(name, operation, payload, timeout);
 	}	
 	
 	/**
-	 * Close.
+	 * Unregister the actor
 	 */
 	public void close() {
-		Broker.unregister(name);
+		Woody.unregister(name);
 	}
 	
-	/**
-	 * Handle call.
-	 *
-	 * @param request the request
-	 */
-	@MessageHandler
+	@CastHandler
 	public void handleCall(final CallRequest request) {
 		final Object reply = invoke(request.getOperation(), request.getPayload());
 		
 		try {
-			Broker.send(request.getReplyTo(), reply);
+			Woody.cast(request.getReplyTo(), reply);
 		} catch(NotRegisteredError e) {
 		}
 	}

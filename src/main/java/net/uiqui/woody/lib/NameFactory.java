@@ -15,18 +15,34 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.annotations;
+package net.uiqui.woody.lib;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import java.security.SecureRandom;
 
 /**
- * The Interface MessageHandler.
+ * This class is use to generate unique names 
  */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface MessageHandler {
+public class NameFactory {
+	private static final SecureRandom numberGenerator = new SecureRandom();
+	
+	/**
+	 * Generate a unique name
+	 *
+	 * @return a random generated  name
+	 */
+	public static String get() {
+		final StringBuilder builder = new StringBuilder();
+		
+		for (int i = 0; i < 4; i++) {
+			final int randInt = numberGenerator.nextInt();
+			
+			if (i > 0) {
+				builder.append("-");
+			}
+			
+			builder.append(Integer.toHexString(randInt));
+		}
+
+		return builder.toString();
+	}
 }

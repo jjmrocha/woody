@@ -15,34 +15,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.factory;
+package net.uiqui.woody.annotations;
 
-import java.security.SecureRandom;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * A factory for creating Reference objects.
+ * The CastHandler annotation is use to mark method that can receive asynchronous messages
  */
-public class ReferenceFactory {
-	private static final SecureRandom numberGenerator = new SecureRandom();
-	
-	/**
-	 * Gets the.
-	 *
-	 * @return the string
-	 */
-	public static String get() {
-		final StringBuilder builder = new StringBuilder();
-		
-		for (int i = 0; i < 4; i++) {
-			final int randInt = numberGenerator.nextInt();
-			
-			if (i > 0) {
-				builder.append("-");
-			}
-			
-			builder.append(Integer.toHexString(randInt));
-		}
-
-		return builder.toString();
-	}
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface CastHandler {
 }

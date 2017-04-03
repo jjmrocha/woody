@@ -21,7 +21,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import net.uiqui.woody.factory.DeamonFactory;
+import net.uiqui.woody.lib.Runner;
 
 public class ActorMailbox implements Mailbox {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
@@ -37,7 +37,7 @@ public class ActorMailbox implements Mailbox {
 		queue.offer(msg);
 
 		if (singletonController.tryAcquire()) {
-			DeamonFactory.spawn(new Runnable() {
+			Runner.spawn(new Runnable() {
 				@Override
 				public void run() {
 					do {

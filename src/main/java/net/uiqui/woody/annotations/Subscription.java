@@ -24,16 +24,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The Interface Subscription.
+ * The Subscription annotation is use to mark method that can receive event messages from a topic
  */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface Subscription {
-	
-	/**
-	 * Value.
-	 *
-	 * @return the string
-	 */
 	String value();
 }

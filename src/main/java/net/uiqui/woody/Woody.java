@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.annotations.MessageHandler;
+import net.uiqui.woody.annotations.CastHandler;
 import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.ActorFacade;
 import net.uiqui.woody.api.Exchange;
@@ -34,40 +34,45 @@ import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.InvalidActorException;
 import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
-import net.uiqui.woody.factory.ReferenceFactory;
+import net.uiqui.woody.lib.NameFactory;
 
 /**
- * The Class Broker.
+ * The Class Woody is responsible for the main features, mainly: Actor and topic registration/subscription and
+ * support for sending messages, publish events and perform rpc calls 
  */
-public class Broker {
+public class Woody {
 	private static final long DEFAULT_TIMEOUT = 5000;
 	
 	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
 	private static final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
 
 	/**
-	 * Register.
+	 * Register one object as an actor
+	 * The object's class must extend Actor class or use one the CastHandler or Subscription 
+	 * annotation on one of its methods
 	 *
-	 * @param actor the actor
-	 * @return the string
-	 * @throws WoodyException the woody exception
+	 * @param actor the actor instance
+	 * @return the actor's name
+	 * @throws WoodyException thrown when an error occurred during actor's registering 
 	 */
 	public static String register(final Object actor) throws WoodyException {
-		final String name = ReferenceFactory.get();
+		final String name = NameFactory.get();
 		register(name, actor);
 		return name;
 	}
 
 	/**
-	 * Register.
+	 * Register one object as an actor
+	 * The object's class must extend Actor class or use one the CastHandler or Subscription 
+	 * annotation on one of its methods
 	 *
-	 * @param name the name
-	 * @param actor the actor
-	 * @throws WoodyException the woody exception
+	 * @param name the actor's name
+	 * @param actor the actor instance
+	 * @throws WoodyException thrown when an error occurred during actor's registering 
 	 */
 	public static void register(final String name, final Object actor) throws WoodyException {
 		if (isValidActor(actor)) {
-			if (!isRegisted(name)) {
+			if (!isRegistered(name)) {
 				final ActorFacade wrapper = new ActorFacade(actor);
 				final Mailbox mailbox = new ActorMailbox(wrapper);
 				mailboxes.putIfAbsent(name, mailbox);
@@ -81,31 +86,33 @@ public class Broker {
 	}
 
 	/**
-	 * Unregister.
+	 * Unregister the actor
 	 *
-	 * @param name the name
+	 * @param name the actor's name
 	 */
 	public static void unregister(final String name) {
 		mailboxes.remove(name);
 	}
 
 	/**
-	 * Checks if is registed.
+	 * Checks if exists an actor registered with the name
 	 *
-	 * @param name the name
-	 * @return true, if is registed
+	 * @param name the name to check
+	 * @return true, if is name is registered
 	 */
-	public static boolean isRegisted(final String name) {
+	public static boolean isRegistered(final String name) {
 		return mailboxes.containsKey(name);
 	}
 
 	/**
-	 * Send.
+	 * Send a message asynchronously to an actor, 
+	 * the message will be delivered to a method marked with
+	 * the CastHandler annotation  
 	 *
-	 * @param name the name
-	 * @param msg the msg
+	 * @param name the actor's name
+	 * @param msg Message to send asynchronously
 	 */
-	public static void send(final String name, final Object msg) {
+	public static void cast(final String name, final Object msg) {
 		final Mailbox mailbox = mailboxes.get(name);
 
 		if (mailbox != null) {
@@ -116,10 +123,12 @@ public class Broker {
 	}
 
 	/**
-	 * Publish.
+	 * Publish a event to a topic,
+	 * all actors subscribing the topic will receive the message
+	 * (an actor subscribes a topic, by annotating a method with the Subscription annotation)  
 	 *
-	 * @param topic the topic
-	 * @param payload the payload
+	 * @param topic the topic's name
+	 * @param payload the event to deliver to all subscribers
 	 */
 	public static void publish(final String topic, final Object payload) {
 		final Exchange exchange = topics.get(topic);
@@ -130,35 +139,35 @@ public class Broker {
 	}
 	
 	/**
-	 * Call.
+	 * Invokes asynchronously one of the methods marked with the CallHandler
+	 * annotation for the operation, of the actor identified by serverName
 	 *
-	 * @param <T> the generic type
-	 * @param serverName the server name
-	 * @param operation the operation
-	 * @param payload the payload
-	 * @return the t
-	 * @throws CallTimeoutException the call timeout exception
+	 * @param serverName the actor's name
+	 * @param operation name of the operation to invoke
+	 * @param payload call's argument
+	 * @return the actor's method returned value
+	 * @throws CallTimeoutException thrown if the call took more time than the default timeout threshold
 	 */
 	public static <T> T call(final String serverName, final String operation, final Object payload) throws CallTimeoutException {
 		return call(serverName, operation, payload, DEFAULT_TIMEOUT);
 	}
 	
 	/**
-	 * Call.
+	 * Invokes asynchronously one of the methods marked with the CallHandler
+	 * annotation for the operation, of the actor identified by serverName
 	 *
-	 * @param <T> the generic type
-	 * @param serverName the server name
-	 * @param operation the operation
-	 * @param payload the payload
-	 * @param timeout the timeout
-	 * @return the t
-	 * @throws CallTimeoutException the call timeout exception
+	 * @param serverName the actor's name
+	 * @param operation name of the operation to invoke
+	 * @param payload call's argument
+	 * @param timeout timeout threshold in milliseconds
+	 * @return the actor's method returned value
+	 * @throws CallTimeoutException thrown if the call took more time than the timeout threshold
 	 */
 	public static <T> T call(final String serverName, final String operation, final Object payload, final long timeout) throws CallTimeoutException {
 		final Mailbox serverMailbox = mailboxes.get(serverName);
 
 		if (serverMailbox != null) {
-			final String callMailboxName = ReferenceFactory.get();
+			final String callMailboxName = NameFactory.get();
 			final CallMailbox callMailbox = new CallMailbox();
 			final CallRequest request = new CallRequest(operation, payload, callMailboxName);
 			
@@ -176,7 +185,7 @@ public class Broker {
 
 	private static boolean isValidActor(final Object actor) {
 		for (Method method : actor.getClass().getMethods()) {
-			final MessageHandler handler = method.getAnnotation(MessageHandler.class);
+			final CastHandler handler = method.getAnnotation(CastHandler.class);
 			final Subscription subscription = method.getAnnotation(Subscription.class);
 
 			if ((handler != null || (subscription != null && subscription.value() != null)) && method.getParameterTypes().length == 1) {

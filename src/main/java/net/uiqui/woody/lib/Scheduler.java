@@ -15,25 +15,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.factory;
+package net.uiqui.woody.lib;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import net.uiqui.woody.Broker;
+import net.uiqui.woody.Woody;
 
 /**
- * A factory for creating Scheduler objects.
+ * Runs a scheduler for execution of tasks and sending messages 
  */
-public class SchedulerFactory {
-	private static final ScheduledExecutorService EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(1, DeamonFactory.THREAD_FACTORY);
+public class Scheduler {
+	private static final ScheduledExecutorService EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(1, Runner.THREAD_FACTORY);
 	
 	/**
-	 * Schedule after.
+	 * Schedule a task for execution after specific delay in milliseconds.
 	 *
-	 * @param delay the delay
+	 * @param delay the delay in milliseconds
 	 * @param command the command
 	 * @return the scheduled future
 	 */
@@ -42,46 +42,46 @@ public class SchedulerFactory {
 	}
 	
 	/**
-	 * Schedule interval.
+	 * Schedule a task for periodic execution
 	 *
-	 * @param delay the delay
+	 * @param interval the execution interval in milliseconds
 	 * @param command the command
 	 * @return the scheduled future
 	 */
-	public static ScheduledFuture<?> scheduleInterval(final long delay, final Runnable command) {
-		return EXECUTOR_SERVICE.scheduleAtFixedRate(command, delay, delay, TimeUnit.MILLISECONDS);
+	public static ScheduledFuture<?> scheduleInterval(final long interval, final Runnable command) {
+		return EXECUTOR_SERVICE.scheduleAtFixedRate(command, interval, interval, TimeUnit.MILLISECONDS);
 	}
 	
 	/**
-	 * Send after.
+	 * Send a message to an actor after a specific delay in milliseconds.
 	 *
-	 * @param delay the delay
-	 * @param name the name
-	 * @param msg the msg
+	 * @param delay the delay in milliseconds
+	 * @param name the actor's name
+	 * @param msg the message to send
 	 * @return the scheduled future
 	 */
 	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Object msg) {
 		return scheduleAfter(delay, new Runnable() {
 			@Override
 			public void run() {
-				Broker.send(name, msg);
+				Woody.cast(name, msg);
 			}
 		});
 	}
 	
 	/**
-	 * Send interval.
+	 * Send a periodic message to an actor.
 	 *
-	 * @param delay the delay
-	 * @param name the name
-	 * @param msg the msg
+	 * @param interval the interval in milliseconds
+	 * @param name the actor's name
+	 * @param msg the message to send
 	 * @return the scheduled future
 	 */
-	public static ScheduledFuture<?> sendInterval(final long delay, final String name, final Object msg) {
-		return scheduleInterval(delay, new Runnable() {
+	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Object msg) {
+		return scheduleInterval(interval, new Runnable() {
 			@Override
 			public void run() {
-				Broker.send(name, msg);
+				Woody.cast(name, msg);
 			}
 		});
 	}
