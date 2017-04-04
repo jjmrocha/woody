@@ -2,6 +2,13 @@
 
 *Woody is a basic implementation of the actor model in JAVA*
 
+> The actor model in computer science is a mathematical model of concurrent computation that treats "actors" as the universal 
+> primitives of concurrent computation. In response to a message that it receives, an actor can: make local decisions, create 
+> more actors, send more messages, and determine how to respond to the next message received. Actors may modify private state, 
+> but can only affect each other through messages (avoiding the need for any locks).
+
+*Wikipedia*
+
 
 ## Introduction
 
@@ -32,12 +39,23 @@ Maven dependency:
 ## API
 
 ### Actor
-> The actor model in computer science is a mathematical model of concurrent computation that treats "actors" as the universal 
-> primitives of concurrent computation. In response to a message that it receives, an actor can: make local decisions, create 
-> more actors, send more messages, and determine how to respond to the next message received. Actors may modify private state, 
-> but can only affect each other through messages (avoiding the need for any locks).
 
-*Wikipedia*
+Any class can be used as an actor, the only requirement is to use one of the annotations CastHandler or Subscription on one of its methods.
+
+To be able to receive messages asynchronously the actor must use the CastHandler annotation to mark the method to process the message. 
+The actor must implement diferente methods for each type of message it can receive, e.g. If the actor can receive string and integer messages, it must provide two methods:
+
+```java
+@CastHandler
+public void handleString(String msg) {
+	System.out.println("Received STR: " + msg);
+}
+
+@CastHandler
+public void handleInt(Integer msg) {
+	System.out.println("Received INT: " + msg);
+}
+```
 
 
 ##### Pojo Actor
@@ -79,7 +97,27 @@ Woody.cast(actor1.getName(), "Hello actor {2}");
 
  
 ### Topic
-Topics can be use to deliver events to many actors (subscribers of the topic).
+Topics can be used to deliver events to many actors (subscribers of the topic).
+
+To be able to receive events asynchronously the actor must subscribe one or more topics using the Subscription annotation to mark the method to process the event. 
+The actor must implement diferente methods for each type of event:
+
+```java
+@Subscription("ping")
+public void ping(Integer msg) {
+	System.out.println("ping: " + msg);
+}
+
+@Subscription("echo")
+public Integer echo(Integer event) {
+	return event;
+}
+
+@Subscription("echo")
+public String echo(String event) {
+	return event;
+}
+```
 
 
 ##### Pojo Actor
@@ -124,8 +162,9 @@ for (int i = 0; i < 5; i ++) {
 
 
 ### RPC
-The RPC mechanism is implemented by sending messages.
-The caller send a message to the actor, the actor computes a response a returns it by sending a message to the caller.
+The RPC mechanism is implemented by sending messages, the caller send a message to the actor, the actor computes a response a returns it by sending a message to the caller.
+
+To be able to receive RPC calls the actor must extend the class **net.uiqui.woody.Actor**, and provide one or more methods mark with the CallHandler annotation to mark the method to process the RPC call.
 
 ```java
 Actor actor3 = new Actor("calculator") {
