@@ -2,6 +2,7 @@
 
 *Woody is a basic implementation of the actor model in JAVA*
 
+
 > The actor model in computer science is a mathematical model of concurrent computation that treats "actors" as the universal 
 > primitives of concurrent computation. In response to a message that it receives, an actor can: make local decisions, create 
 > more actors, send more messages, and determine how to respond to the next message received. Actors may modify private state, 
@@ -58,7 +59,7 @@ public void handleInt(Integer msg) {
 ```
 
 
-##### Pojo Actor
+##### Pojo Actor Example
 
 ```java
 // Any class can be an actor
@@ -77,7 +78,7 @@ Woody.cast("pojo1", "Hello pojo!");
 ```
 
 
-##### Actor Class
+##### Actor Class Example
 
 ```java
 // Extending the Actor class the actor is automatically registered
@@ -120,7 +121,7 @@ public String echo(String event) {
 ```
 
 
-##### Pojo Actor
+##### Pojo Actor Example
 
 ```java
 public class PojoActor2 {
@@ -142,7 +143,7 @@ for (int i = 0; i < 5; i ++) {
 ```
 
 
-##### Actor Class
+##### Actor Class Example
 
 ```java
 // We can specify the actor's name on the constructor 
