@@ -5,7 +5,7 @@
 
 ## Introduction
 
-![Woody Woodpecker](https://en.wikipedia.org/wiki/Woody_Woodpecker#/media/File:Woody_Woodpecker.png)
+![Woody Woodpecker](https://upload.wikimedia.org/wikipedia/en/3/3f/Woody_Woodpecker.png)
 
 This implementation was heavily influenced by Erlang programming language.
 
