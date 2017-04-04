@@ -141,7 +141,8 @@ Actor actor3 = new Actor("calculator") {
 };
 
 try {
-	// If the call take more than 5000 milliseconds (the default value) the caller will receive a CallTimeoutException
+	// If the call take more than 5000 milliseconds (the default value) 
+	// the caller will receive a CallTimeoutException
 	Integer sum = actor3.call("add", new Parameters(2, 3));
 	System.out.println(sum);
 	
