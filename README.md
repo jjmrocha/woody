@@ -1,9 +1,19 @@
 # WOODY 
 
+*Woody is a basic implementation of the actor model in JAVA*
+
+
 ## Introduction
 
-Woody is basic implementation of the actor model implementation.
-This implementation is heavily influenced by Erlang.
+![Woody Woodpecker](https://en.wikipedia.org/wiki/Woody_Woodpecker#/media/File:Woody_Woodpecker.png)
+
+This implementation was heavily influenced by Erlang programming language.
+
+The main characteristics of this implementation are:
+* All communication (message sending, event delivery and RPC calls) with an actor are perform a asynchronously
+* An actor will receive the messages sequentially and in the same order the messages were sent
+* The messages are deliver almost immediately, if the actor is busy processing a previous message, the new message is queue
+* Woody uses a thread pool for processing messages, this way the system only has as many threads running as needed. 
 
 
 ## Instalation
@@ -11,11 +21,11 @@ This implementation is heavily influenced by Erlang.
 Maven dependency:
  
 ```xml
-	<dependency>
-	    <groupId>net.uiqui</groupId>
-	    <artifactId>woody</artifactId>
-	    <version>2.0.0</version>
-	</dependency>
+<dependency>
+    <groupId>net.uiqui</groupId>
+    <artifactId>woody</artifactId>
+    <version>2.0.0</version>
+</dependency>
 ```
 
  
@@ -26,44 +36,45 @@ Maven dependency:
 > primitives of concurrent computation. In response to a message that it receives, an actor can: make local decisions, create 
 > more actors, send more messages, and determine how to respond to the next message received. Actors may modify private state, 
 > but can only affect each other through messages (avoiding the need for any locks).
+
 *Wikipedia*
 
 
 ##### Pojo Actor
 
 ```java
-	// Any class can be an actor
-	public class PojoActor1 {
-		@CastHandler
-		public void handleCast(String msg) {
-			System.out.println("Received: " + msg);
-		}
+// Any class can be an actor
+public class PojoActor1 {
+	@CastHandler
+	public void handleCast(String msg) {
+		System.out.println("Received: " + msg);
 	}
-	
-	// Register actor
-	Woody.register("pojo1", new PojoActor1());
-	
-	// Send a message to actor
-	Woody.cast("pojo1", "Hello pojo!");
+}
+
+// Register actor
+Woody.register("pojo1", new PojoActor1());
+
+// Send a message to actor
+Woody.cast("pojo1", "Hello pojo!");
 ```
 
 
 ##### Actor Class
 
 ```java
-	// Extending the Actor class the actor is automatically registered
-	Actor actor1 = new Actor() {
-		@CastHandler
-		public void handleCast(String msg) {
-			System.out.println("[" + getName() + "] Received: " + msg);
-		}
-	};
-	
-	// We can use the actor method cast to send an asynchronously message
-	actor1.cast("Hello actor {1}");
-	
-	// But we can still send a message using Woody
-	Woody.cast(actor1.getName(), "Hello actor {2}");
+// Extending the Actor class the actor is automatically registered
+Actor actor1 = new Actor() {
+	@CastHandler
+	public void handleCast(String msg) {
+		System.out.println("[" + getName() + "] Received: " + msg);
+	}
+};
+
+// We can use the actor method cast to send an asynchronously message
+actor1.cast("Hello actor {1}");
+
+// But we can still send a message using Woody
+Woody.cast(actor1.getName(), "Hello actor {2}");
 ```
 
  
@@ -74,41 +85,41 @@ Topics can be use to deliver events to many actors (subscribers of the topic).
 ##### Pojo Actor
 
 ```java
-	public class PojoActor2 {
-		@Subscription("ping")
-		public void ping(Integer msg) {
-			System.out.println("ping: " + msg);
-		}
+public class PojoActor2 {
+	@Subscription("ping")
+	public void ping(Integer msg) {
+		System.out.println("ping: " + msg);
 	}
-	
-	// When we register and actor without providing a name for the actor
-	// the register returns the generated name 
-	String actorName = Woody.register(new PojoActor2());
-	
-	for (int i = 0; i < 5; i ++) {
-		// The event is published to a topic
-		Woody.publish("ping", i);
-		Runner.sleep(1, TimeUnit.SECONDS);
-	}
+}
+
+// When we register and actor without providing a name for the actor
+// the register returns the generated name 
+String actorName = Woody.register(new PojoActor2());
+
+for (int i = 0; i < 5; i ++) {
+	// The event is published to a topic
+	Woody.publish("ping", i);
+	Runner.sleep(1, TimeUnit.SECONDS);
+}
 ```
 
 
 ##### Actor Class
 
 ```java
-	// We can specify the actor's name on the constructor 
-	Actor actor2 = new Actor("actor2") {
-		@Subscription("ping")
-		public void event(Integer msg) {
-			System.out.println("[" + getName() + "] event: " + msg);
-		}			
-	};
-	
-	for (int i = 0; i < 5; i ++) {
-		// The event is published to a topic
-		Woody.publish("ping", i);
-		Runner.sleep(1, TimeUnit.SECONDS);
-	}
+// We can specify the actor's name on the constructor 
+Actor actor2 = new Actor("actor2") {
+	@Subscription("ping")
+	public void event(Integer msg) {
+		System.out.println("[" + getName() + "] event: " + msg);
+	}			
+};
+
+for (int i = 0; i < 5; i ++) {
+	// The event is published to a topic
+	Woody.publish("ping", i);
+	Runner.sleep(1, TimeUnit.SECONDS);
+}
 ```
 
 
@@ -117,29 +128,29 @@ The RPC mechanism is implemented by sending messages.
 The caller send a message to the actor, the actor computes a response a returns it by sending a message to the caller.
 
 ```java
-	Actor actor3 = new Actor("calculator") {
-		@CallHandler("add")
-		public Integer add(Parameters param) {
-			return param.getA() + param.getB();
-		}
-		
-		@CallHandler("multiply")
-		public Integer multiply(Parameters param) {
-			return param.getA() * param.getB();
-		}
-	};
-	
-	try {
-		// If the call take more than 5000 milliseconds (the default value) the caller will receive a CallTimeoutException
-		Integer sum = actor3.call("add", new Parameters(2, 3));
-		System.out.println(sum);
-		
-		// We can specify a timeout for the call
-		Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3), 10);
-		System.out.println(product);
-	} catch (CallTimeoutException e) {
-		System.err.println("Computation took to long, we received a timeout");
+Actor actor3 = new Actor("calculator") {
+	@CallHandler("add")
+	public Integer add(Parameters param) {
+		return param.getA() + param.getB();
 	}
+	
+	@CallHandler("multiply")
+	public Integer multiply(Parameters param) {
+		return param.getA() * param.getB();
+	}
+};
+
+try {
+	// If the call take more than 5000 milliseconds (the default value) the caller will receive a CallTimeoutException
+	Integer sum = actor3.call("add", new Parameters(2, 3));
+	System.out.println(sum);
+	
+	// We can specify a timeout for the call
+	Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3), 10);
+	System.out.println(product);
+} catch (CallTimeoutException e) {
+	System.err.println("Computation took to long, we received a timeout");
+}
 ```
 
 
