@@ -32,7 +32,7 @@ Maven dependency:
 <dependency>
     <groupId>net.uiqui</groupId>
     <artifactId>woody</artifactId>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -41,10 +41,10 @@ Maven dependency:
 
 ### Actor
 
-Any class can be used as an actor, the only requirement is to use one of the annotations CastHandler or Subscription on one of its methods.
+Any class can be used as an actor, the only requirement is to use one of the annotations **CastHandler** or **Subscription** on one of its methods.
 
-To be able to receive messages asynchronously the actor must use the CastHandler annotation to mark the method to process the message. 
-The actor must implement diferente methods for each type of message it can receive, e.g. If the actor can receive string and integer messages, it must provide two methods:
+To be able to receive messages asynchronously the actor must use the **CastHandler** annotation to mark the method to process the message. 
+The actor must implement different methods for each type of message it can receive, e.g. If the actor can receive string and integer messages, it must provide two methods:
 
 ```java
 @CastHandler
@@ -57,6 +57,8 @@ public void handleInt(Integer msg) {
 	System.out.println("Received INT: " + msg);
 }
 ```
+
+**NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive a message of an unsupported data type.**
 
 
 ##### Pojo Actor Example
@@ -100,8 +102,8 @@ Woody.cast(actor1.getName(), "Hello actor {2}");
 ### Topic
 Topics can be used to deliver events to many actors (subscribers of the topic).
 
-To be able to receive events asynchronously the actor must subscribe one or more topics using the Subscription annotation to mark the method to process the event. 
-The actor must implement diferente methods for each type of event:
+To be able to receive events asynchronously the actor must subscribe one or more topics using the **Subscription** annotation to mark the method to process the event. 
+The actor must implement different methods for each type of event:
 
 ```java
 @Subscription("ping")
@@ -119,6 +121,8 @@ public String echo(String event) {
 	return event;
 }
 ```
+
+**NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive an event of an unsupported data type.**
 
 
 ##### Pojo Actor Example
@@ -163,9 +167,9 @@ for (int i = 0; i < 5; i ++) {
 
 
 ### RPC
-The RPC mechanism is implemented by sending messages, the caller send a message to the actor, the actor computes a response a returns it by sending a message to the caller.
+The RPC mechanism is implemented by sending messages, the caller send a message to the actor, the actor computes a response and the caller receives it using a Future object.
 
-To be able to receive RPC calls the actor must extend the class **net.uiqui.woody.Actor**, and provide one or more methods mark with the CallHandler annotation to mark the method to process the RPC call.
+To be able to receive RPC calls the actor must extend the class **net.uiqui.woody.Actor**, and provide one or more methods mark with the **CallHandler** annotation to mark the method to process the RPC call.
 
 ```java
 Actor actor3 = new Actor("calculator") {
@@ -180,16 +184,20 @@ Actor actor3 = new Actor("calculator") {
 	}
 };
 
+Future<Object> sum = actor3.call("add", new Parameters(2, 3));
+// ... do stuff ...
+System.out.println(sum.get());
+
+// We can also use Woody to perform the call
+sum = Woody.call("calculator", "add", new Parameters(3, 4));
+// ... do stuff ...
+System.out.println(sum.get());
+
+// We can specify the maxim time the computation can take to completed
 try {
-	// If the call take more than 5000 milliseconds (the default value) 
-	// the caller will receive a CallTimeoutException
-	Integer sum = actor3.call("add", new Parameters(2, 3));
-	System.out.println(sum);
-	
-	// We can specify a timeout for the call
-	Integer product = Woody.call("calculator", "multiply", new Parameters(2, 3), 10);
-	System.out.println(product);
-} catch (CallTimeoutException e) {
+	// We can specify the maxim time the computation can take to completed
+	System.out.println(actor3.call("multiply", new Parameters(2, 3)).get(10, TimeUnit.MILLISECONDS));
+} catch (TimeoutException e) {
 	System.err.println("Computation took to long, we received a timeout");
 }
 ```

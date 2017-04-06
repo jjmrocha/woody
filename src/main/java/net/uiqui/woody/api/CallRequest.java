@@ -17,15 +17,13 @@
  */
 package net.uiqui.woody.api;
 
-public class CallRequest {
+public class CallRequest extends FutureResult<Object> {
 	private String operation = null;
 	private Object payload = null;
-	private String replyTo = null;
-	
-	public CallRequest(final String operation, final Object payload, final String replyTo) {
+
+	public CallRequest(final String operation, final Object payload) {
 		this.operation = operation;
 		this.payload = payload;
-		this.replyTo = replyTo;
 	}
 	
 	public String getOperation() {
@@ -34,9 +32,5 @@ public class CallRequest {
 
 	public Object getPayload() {
 		return payload;
-	}
-	
-	public String getReplyTo() {
-		return replyTo;
 	}
 }

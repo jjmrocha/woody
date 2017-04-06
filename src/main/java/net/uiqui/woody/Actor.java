@@ -18,13 +18,12 @@
 package net.uiqui.woody;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.Future;
 
 import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
-import net.uiqui.woody.api.DynamicInvoker;
 import net.uiqui.woody.api.CallRequest;
-import net.uiqui.woody.api.error.CallTimeoutException;
-import net.uiqui.woody.api.error.NotRegisteredError;
+import net.uiqui.woody.api.DynamicInvoker;
 import net.uiqui.woody.api.error.WoodyException;
 
 /**
@@ -94,25 +93,10 @@ public abstract class Actor extends DynamicInvoker {
 	 * @param operation name of the operation to invoke
 	 * @param payload call's argument
 	 * @return the method's return value
-	 * @throws CallTimeoutException thrown if the call took more time than the default timeout threshold
 	 */
-	public <T> T call(final String operation, final Object payload) throws CallTimeoutException {
+	public Future<Object> call(final String operation, final Object payload) {
 		return Woody.call(name, operation, payload);
 	}
-	
-	/**
-	 * Invokes asynchronously one of the methods marked with the CallHandler
-	 * annotation for the operation.
-	 *
-	 * @param operation name of the operation to invoke
-	 * @param payload call's argument
-	 * @param timeout timeout threshold in milliseconds
-	 * @return the method's return value
-	 * @throws CallTimeoutException thrown if the call took more time than the timeout threshold
-	 */
-	public <T> T call(final String operation, final Object payload, final long timeout) throws CallTimeoutException {
-		return Woody.call(name, operation, payload, timeout);
-	}	
 	
 	/**
 	 * Unregister the actor
@@ -123,11 +107,13 @@ public abstract class Actor extends DynamicInvoker {
 	
 	@CastHandler
 	public void handleCall(final CallRequest request) {
-		final Object reply = invoke(request.getOperation(), request.getPayload());
-		
-		try {
-			Woody.cast(request.getReplyTo(), reply);
-		} catch(NotRegisteredError e) {
+		if (request.tryRun()) {
+			try {
+				final Object reply = invoke(request.getOperation(), request.getPayload());
+				request.setResult(reply);
+			} catch (Throwable cause) {
+				request.setException(cause);
+			}
 		}
 	}
 }

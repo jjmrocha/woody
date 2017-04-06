@@ -19,18 +19,17 @@ package net.uiqui.woody;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
-import net.uiqui.woody.annotations.Subscription;
 import net.uiqui.woody.annotations.CastHandler;
-import net.uiqui.woody.api.ActorMailbox;
+import net.uiqui.woody.annotations.Subscription;
 import net.uiqui.woody.api.ActorFacade;
-import net.uiqui.woody.api.Exchange;
-import net.uiqui.woody.api.Mailbox;
-import net.uiqui.woody.api.CallMailbox;
+import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.CallRequest;
 import net.uiqui.woody.api.Event;
+import net.uiqui.woody.api.Exchange;
+import net.uiqui.woody.api.Mailbox;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
-import net.uiqui.woody.api.error.CallTimeoutException;
 import net.uiqui.woody.api.error.InvalidActorException;
 import net.uiqui.woody.api.error.NotRegisteredError;
 import net.uiqui.woody.api.error.WoodyException;
@@ -41,8 +40,6 @@ import net.uiqui.woody.lib.NameFactory;
  * support for sending messages, publish events and perform rpc calls 
  */
 public class Woody {
-	private static final long DEFAULT_TIMEOUT = 5000;
-	
 	private static final ConcurrentHashMap<String, Mailbox> mailboxes = new ConcurrentHashMap<String, Mailbox>();
 	private static final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
 
@@ -145,42 +142,12 @@ public class Woody {
 	 * @param serverName the actor's name
 	 * @param operation name of the operation to invoke
 	 * @param payload call's argument
-	 * @return the actor's method returned value
-	 * @throws CallTimeoutException thrown if the call took more time than the default timeout threshold
+	 * @return a future that will contain the call output
 	 */
-	public static <T> T call(final String serverName, final String operation, final Object payload) throws CallTimeoutException {
-		return call(serverName, operation, payload, DEFAULT_TIMEOUT);
-	}
-	
-	/**
-	 * Invokes asynchronously one of the methods marked with the CallHandler
-	 * annotation for the operation, of the actor identified by serverName
-	 *
-	 * @param serverName the actor's name
-	 * @param operation name of the operation to invoke
-	 * @param payload call's argument
-	 * @param timeout timeout threshold in milliseconds
-	 * @return the actor's method returned value
-	 * @throws CallTimeoutException thrown if the call took more time than the timeout threshold
-	 */
-	public static <T> T call(final String serverName, final String operation, final Object payload, final long timeout) throws CallTimeoutException {
-		final Mailbox serverMailbox = mailboxes.get(serverName);
-
-		if (serverMailbox != null) {
-			final String callMailboxName = NameFactory.get();
-			final CallMailbox callMailbox = new CallMailbox();
-			final CallRequest request = new CallRequest(operation, payload, callMailboxName);
-			
-			try {
-				mailboxes.put(callMailboxName, callMailbox);
-				serverMailbox.deliver(request);
-				return callMailbox.receiveReply(timeout);
-			} finally {
-				unregister(callMailboxName);
-			}
-		} else {
-			throw new NotRegisteredError(serverName);
-		}
+	public static Future<Object> call(final String serverName, final String operation, final Object payload) {
+		final CallRequest request = new CallRequest(operation, payload);
+		cast(serverName, request);
+		return request;
 	}
 
 	private static boolean isValidActor(final Object actor) {

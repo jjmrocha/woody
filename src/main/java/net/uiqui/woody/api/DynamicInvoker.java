@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class DynamicInvoker {
 	private static final String DEFAULT_KEY = "$$";
-	private final Map<MKey, Method> methods = new HashMap<MKey, Method>();
+	private final Map<KeyType, Method> methods = new HashMap<KeyType, Method>();
 	private Object target = null;
 	
 	public DynamicInvoker(final Object target) {
@@ -39,7 +39,7 @@ public class DynamicInvoker {
 	}
 	
 	public void addTypeInvoker(final String key, final Class<?> type, final Method method) {
-		methods.put(new MKey(key, type), method);
+		methods.put(new KeyType(key, type), method);
 		method.setAccessible(true);
 	}
 
@@ -52,9 +52,9 @@ public class DynamicInvoker {
 			} catch (Exception e) {
 				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + target.getClass().getName() + " with parameter of type " + param.getClass().getName(), e);
 			}
+		} else {
+			throw new RuntimeException("Method not found on class " + target.getClass().getName() + " for parameter of type " + param.getClass().getName() + (key.equals(DEFAULT_KEY)?"": " and idenfified as '" + key + "'"));
 		}
-		
-		return null;
 	}
 	
 	public Object invoke(final Object param) {
@@ -63,18 +63,18 @@ public class DynamicInvoker {
 
 	private Method getMethod(final String key, final Object param) {
 		final Class<?> type = param.getClass();
-		final MKey mKey = new MKey(key, type);
-		final Method method = methods.get(mKey);
+		final KeyType keyType = new KeyType(key, type);
+		final Method method = methods.get(keyType);
 		
 		if (method != null) {
 			return method;
 		}
 		
-		for (Map.Entry<MKey, Method> entry : methods.entrySet()) {
-			final MKey entryMKey = entry.getKey();
+		for (Map.Entry<KeyType, Method> entry : methods.entrySet()) {
+			final KeyType entryKeyType = entry.getKey();
 			
-			if (entryMKey.key.equals(key) && entryMKey.type.isAssignableFrom(type)) {
-				methods.put(mKey, entry.getValue());
+			if (entryKeyType.key.equals(key) && entryKeyType.type.isAssignableFrom(type)) {
+				methods.put(keyType, entry.getValue());
 				return entry.getValue();
 			}
 		}
@@ -82,11 +82,11 @@ public class DynamicInvoker {
 		return null;
 	}
 	
-	private static class MKey {
+	private static final class KeyType {
 		private String key = null;
 		private Class<?> type = null;
 		
-		public MKey(final String key, final Class<?> type) {
+		public KeyType(final String key, final Class<?> type) {
 			this.key = key;
 			this.type = type;
 		}
@@ -103,8 +103,8 @@ public class DynamicInvoker {
 				return false;
 			}
 			
-			if (obj instanceof MKey) {
-				final MKey other = (MKey) obj;
+			if (obj instanceof KeyType) {
+				final KeyType other = (KeyType) obj;
 				
 				if (!key.equals(other.key)) {
 					return false;
