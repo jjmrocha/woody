@@ -193,7 +193,7 @@ sum = Woody.call("calculator", "add", new Parameters(3, 4));
 // ... do stuff ...
 System.out.println(sum.get());
 
-// We can specify the maxim time the computation can take to completed
+// We can specify the maximum time the computation can take to completed
 try {
 	// We can specify the maxim time the computation can take to completed
 	System.out.println(actor3.call("multiply", new Parameters(2, 3)).get(10, TimeUnit.MILLISECONDS));
