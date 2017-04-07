@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.Woody;
 
 /**
@@ -61,10 +62,12 @@ public class Scheduler {
 	 * @return the scheduled future
 	 */
 	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Object msg) {
+		final ActorRef actorRef = Woody.getActorRef(name);
+		
 		return scheduleAfter(delay, new Runnable() {
 			@Override
 			public void run() {
-				Woody.cast(name, msg);
+				actorRef.cast(msg);
 			}
 		});
 	}
@@ -78,10 +81,12 @@ public class Scheduler {
 	 * @return the scheduled future
 	 */
 	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Object msg) {
+		final ActorRef actorRef = Woody.getActorRef(name);
+		
 		return scheduleInterval(interval, new Runnable() {
 			@Override
 			public void run() {
-				Woody.cast(name, msg);
+				actorRef.cast(msg);
 			}
 		});
 	}

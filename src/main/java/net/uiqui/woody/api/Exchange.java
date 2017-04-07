@@ -20,12 +20,12 @@ package net.uiqui.woody.api;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.Woody;
-import net.uiqui.woody.api.error.NotRegisteredError;
 
 public class Exchange {
 	private final Deque<String> subscribers = new ConcurrentLinkedDeque<String>();
-	
+
 	public Exchange(final String name) {
 		bind(name);
 	}
@@ -35,12 +35,14 @@ public class Exchange {
 			subscribers.add(name);
 		}
 	}
-	
+
 	public void route(final Object msg) {
-		for (String name: subscribers) {
-			try {
-				Woody.cast(name, msg);
-			} catch (NotRegisteredError e) {
+		for (String name : subscribers) {
+			final ActorRef actorRef = Woody.getActorRef(name);
+
+			if (actorRef != null) {
+				actorRef.cast(msg);
+			} else {
 				subscribers.remove(name);
 			}
 		}

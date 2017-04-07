@@ -20,6 +20,7 @@ package net.uiqui.woody.api;
 import java.lang.reflect.Method;
 
 import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
 
 public class ActorFacade extends DynamicInvoker {
@@ -28,9 +29,9 @@ public class ActorFacade extends DynamicInvoker {
 		
 		for (Method method : actor.getClass().getMethods()) {
 			if (method.getParameterTypes().length == 1) {
-				final CastHandler handler = method.getAnnotation(CastHandler.class);
+				final CastHandler cast = method.getAnnotation(CastHandler.class);
 				
-				if (handler != null) {
+				if (cast != null) {
 					addTypeInvoker(method.getParameterTypes()[0], method);
 				}
 				
@@ -38,13 +39,21 @@ public class ActorFacade extends DynamicInvoker {
 				
 				if (subscription != null && subscription.value() != null) {
 					addTypeInvoker(subscription.value(), method.getParameterTypes()[0], method);
-				}					
-			}		
+				}		
+				
+				final CallHandler call = method.getAnnotation(CallHandler.class);
+				
+				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
+					addTypeInvoker(call.value(), method.getParameterTypes()[0], method);
+				}
+			}
 		}
 	}
 	
 	public void onMessage(final Object msg) {
-		if (msg instanceof Event) {
+		if (msg instanceof Call) {
+			handleCall((Call) msg);
+		} else if (msg instanceof Event) {
 			onEvent((Event) msg);
 		} else {
 			invoke(msg);
@@ -54,4 +63,15 @@ public class ActorFacade extends DynamicInvoker {
 	private void onEvent(final Event event) {
 		invoke(event.getTopic(), event.getPayload());
 	}
+	
+	private void handleCall(final Call request) {
+		if (request.tryRun()) {
+			try {
+				final Object reply = invoke(request.getOperation(), request.getPayload());
+				request.setResult(reply);
+			} catch (Throwable cause) {
+				request.setException(cause);
+			}
+		}
+	}	
 }

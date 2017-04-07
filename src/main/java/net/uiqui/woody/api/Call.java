@@ -17,6 +17,20 @@
  */
 package net.uiqui.woody.api;
 
-public interface Mailbox {
-	public void deliver(final Object msg);
+public class Call extends FutureResult<Object> {
+	private String operation = null;
+	private Object payload = null;
+
+	public Call(final String operation, final Object payload) {
+		this.operation = operation;
+		this.payload = payload;
+	}
+	
+	public String getOperation() {
+		return operation;
+	}
+
+	public Object getPayload() {
+		return payload;
+	}
 }

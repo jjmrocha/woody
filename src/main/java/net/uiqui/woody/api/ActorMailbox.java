@@ -18,22 +18,32 @@
 package net.uiqui.woody.api;
 
 import java.util.Queue;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.lib.Runner;
 
-public class ActorMailbox implements Mailbox {
+public class ActorMailbox implements ActorRef {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final Semaphore singletonController = new Semaphore(1);
+	
+	private String name = null;
 	private ActorFacade actor = null;
 
-	public ActorMailbox(final ActorFacade actor) {
+	public ActorMailbox(final String name, final ActorFacade actor) {
+		this.name = name;
 		this.actor = actor;
+	}
+	
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override
-	public void deliver(final Object msg) {
+	public void cast(final Object msg) {
 		queue.offer(msg);
 
 		if (singletonController.tryAcquire()) {
@@ -56,5 +66,12 @@ public class ActorMailbox implements Mailbox {
 				}
 			});
 		}
+	}
+
+	@Override
+	public Future<Object> call(final String operation, final Object payload) {
+		final Call request = new Call(operation, payload);
+		cast(request);
+		return request;
 	}
 }
