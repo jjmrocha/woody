@@ -58,8 +58,8 @@ public class ActorFacade extends DynamicInvoker {
 
 		try {
 			for (Field field : actor.getClass().getDeclaredFields()) {
-				Class<?> type = field.getType();
-
+				final Class<?> type = field.getType();
+				
 				final Self self = field.getAnnotation(Self.class);
 
 				if (self != null && type.equals(String.class)) {
