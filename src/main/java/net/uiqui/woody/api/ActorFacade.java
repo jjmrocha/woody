@@ -17,39 +17,73 @@
  */
 package net.uiqui.woody.api;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.ActorRef;
+import net.uiqui.woody.annotations.Actor;
 import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
+import net.uiqui.woody.annotations.Self;
 
 public class ActorFacade extends DynamicInvoker {
-	public ActorFacade(final Object actor) {
+	private boolean searchable = false;
+	
+	public ActorFacade(final String name, final Object actor) {
 		super(actor);
-		
+
 		for (Method method : actor.getClass().getMethods()) {
 			if (method.getParameterTypes().length == 1) {
 				final CastHandler cast = method.getAnnotation(CastHandler.class);
-				
+
 				if (cast != null) {
 					addTypeInvoker(method.getParameterTypes()[0], method);
 				}
-				
+
 				final Subscription subscription = method.getAnnotation(Subscription.class);
-				
+
 				if (subscription != null && subscription.value() != null) {
 					addTypeInvoker(subscription.value(), method.getParameterTypes()[0], method);
-				}		
-				
+					searchable = true;
+				}
+
 				final CallHandler call = method.getAnnotation(CallHandler.class);
-				
+
 				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
 					addTypeInvoker(call.value(), method.getParameterTypes()[0], method);
 				}
 			}
 		}
+
+		try {
+			for (Field field : actor.getClass().getDeclaredFields()) {
+				Class<?> type = field.getType();
+
+				final Self self = field.getAnnotation(Self.class);
+
+				if (self != null && type.equals(String.class)) {
+					field.setAccessible(true);
+					field.set(actor, name);
+					searchable = true;
+				}
+				
+				final Actor actorRef = field.getAnnotation(Actor.class);
+
+				if (actorRef != null && actorRef.value() != null && type.equals(ActorRef.class)) {
+					field.setAccessible(true);
+					field.set(actor, new LazyActorRef(actorRef.value()));
+				}
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error accessing actor fields", e);
+		}
 	}
-	
+
+	public boolean isSearchable() {
+		return searchable;
+	}
+
 	public void onMessage(final Object msg) {
 		if (msg instanceof Call) {
 			handleCall((Call) msg);
@@ -59,11 +93,11 @@ public class ActorFacade extends DynamicInvoker {
 			invoke(msg);
 		}
 	}
-	
+
 	private void onEvent(final Event event) {
 		invoke(event.getTopic(), event.getPayload());
 	}
-	
+
 	private void handleCall(final Call request) {
 		if (request.tryRun()) {
 			try {
@@ -73,5 +107,5 @@ public class ActorFacade extends DynamicInvoker {
 				request.setException(cause);
 			}
 		}
-	}	
+	}
 }

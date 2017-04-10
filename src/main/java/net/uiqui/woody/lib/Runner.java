@@ -39,7 +39,6 @@ public class Runner {
 	private static final boolean USE_DAEMON_THREADS = useDeamonThreads();
 
 	protected static final ThreadFactory THREAD_FACTORY = new ThreadFactory() {
-		@Override
 		public Thread newThread(final Runnable command) {
 			final Thread thread = new Thread(command);
 			thread.setDaemon(USE_DAEMON_THREADS);

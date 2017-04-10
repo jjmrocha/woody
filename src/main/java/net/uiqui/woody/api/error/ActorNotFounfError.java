@@ -17,19 +17,10 @@
  */
 package net.uiqui.woody.api.error;
 
-public class WoodyException extends RuntimeException {
-	private static final long serialVersionUID = 7650349577411709674L;
+public class ActorNotFounfError extends WoodyException {
+	private static final long serialVersionUID = 4847306643419446716L;
 
-	public WoodyException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
-
-	public WoodyException(final String message) {
+	public ActorNotFounfError(final String message) {
 		super(message);
 	}
-
-	public WoodyException(final Throwable cause) {
-		super(cause);
-	}
-
 }

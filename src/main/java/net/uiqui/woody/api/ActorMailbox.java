@@ -29,26 +29,17 @@ public class ActorMailbox implements ActorRef {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final Semaphore singletonController = new Semaphore(1);
 	
-	private String name = null;
 	private ActorFacade actor = null;
 
-	public ActorMailbox(final String name, final ActorFacade actor) {
-		this.name = name;
+	public ActorMailbox(final ActorFacade actor) {
 		this.actor = actor;
 	}
-	
-	@Override
-	public String getName() {
-		return name;
-	}
 
-	@Override
 	public void cast(final Object msg) {
 		queue.offer(msg);
 
 		if (singletonController.tryAcquire()) {
 			Runner.spawn(new Runnable() {
-				@Override
 				public void run() {
 					do {
 						try {
@@ -68,7 +59,6 @@ public class ActorMailbox implements ActorRef {
 		}
 	}
 
-	@Override
 	public Future<Object> call(final String operation, final Object payload) {
 		final Call request = new Call(operation, payload);
 		cast(request);

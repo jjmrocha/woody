@@ -15,21 +15,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.error;
+package net.uiqui.woody.annotations;
 
-public class WoodyException extends RuntimeException {
-	private static final long serialVersionUID = 7650349577411709674L;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-	public WoodyException(final String message, final Throwable cause) {
-		super(message, cause);
-	}
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-	public WoodyException(final String message) {
-		super(message);
-	}
-
-	public WoodyException(final Throwable cause) {
-		super(cause);
-	}
-
+/**
+ * The Actor annotation is used to request the ActorRef injection on the associated field
+ */
+@Retention(RUNTIME)
+@Target(FIELD)
+public @interface Actor {
+	String value();
 }

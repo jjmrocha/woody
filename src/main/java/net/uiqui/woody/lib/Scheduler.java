@@ -65,7 +65,6 @@ public class Scheduler {
 		final ActorRef actorRef = Woody.getActorRef(name);
 		
 		return scheduleAfter(delay, new Runnable() {
-			@Override
 			public void run() {
 				actorRef.cast(msg);
 			}
@@ -84,7 +83,6 @@ public class Scheduler {
 		final ActorRef actorRef = Woody.getActorRef(name);
 		
 		return scheduleInterval(interval, new Runnable() {
-			@Override
 			public void run() {
 				actorRef.cast(msg);
 			}

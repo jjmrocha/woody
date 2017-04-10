@@ -19,14 +19,10 @@ package net.uiqui.woody;
 
 import java.util.concurrent.Future;
 
-public interface ActorRef {	
-	/**
-	 * Returns the actor's name
-	 *
-	 * @return the actor's name
-	 */
-	public String getName();
-	
+/**
+ * This interface allows the interaction with an actor  
+ */
+public interface ActorRef {		
 	/**
 	 * Send a message asynchronously to the actor instance 
 	 * the message will be delivered to a method marked with

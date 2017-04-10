@@ -15,21 +15,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.error;
+package net.uiqui.woody.lib;
 
-public class WoodyException extends RuntimeException {
-	private static final long serialVersionUID = 7650349577411709674L;
+import net.uiqui.woody.api.error.InvalidActorException;
 
-	public WoodyException(final String message, final Throwable cause) {
-		super(message, cause);
+public class ActorFactory {
+	public static Object newActor(final Class<?> clazz) throws InvalidActorException {
+		try {
+			return clazz.newInstance();
+		} catch (Exception e) {
+			throw new InvalidActorException("Error creating instance of " + clazz.getName(), e);
+		}
 	}
-
-	public WoodyException(final String message) {
-		super(message);
-	}
-
-	public WoodyException(final Throwable cause) {
-		super(cause);
-	}
-
 }

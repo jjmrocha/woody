@@ -39,22 +39,18 @@ public class FutureResult<T> implements Future<T> {
 	private volatile int state = STATE_WAITING;
 
 	// Future implementation
-	@Override
 	public boolean cancel(final boolean mayInterruptIfRunning) {		
 		return tryChangeState(STATE_CANCELED, null, null);
 	}
 
-	@Override
 	public boolean isCancelled() {
 		return state == STATE_CANCELED;
 	}
 
-	@Override
 	public boolean isDone() {
 		return state == STATE_DONE;
 	}
 
-	@Override
 	public T get() throws InterruptedException, ExecutionException {
 		if (state < STATE_DONE) {
 			clientParking.acquire();
@@ -63,7 +59,6 @@ public class FutureResult<T> implements Future<T> {
 		return report();
 	}
 
-	@Override
 	public T get(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException, ExecutionException {
 		if (state >= STATE_DONE || clientParking.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
 			return report();
