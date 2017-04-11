@@ -32,7 +32,7 @@ Maven dependency:
 <dependency>
     <groupId>net.uiqui</groupId>
     <artifactId>woody</artifactId>
-    <version>2.1.0</version>
+    <version>2.2.0</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ Maven dependency:
 
 ### Actor
 
-Any class can be used as an actor, the only requirement is to use one of the annotations **CastHandler** or **Subscription** on one of its methods.
+Any class can be used as an actor, the only requirement is to use one of the annotations **CastHandler**, **CallHandler** or **Subscription** on one of its methods.
 
 To be able to receive messages asynchronously the actor must use the **CastHandler** annotation to mark the method to process the message. 
 The actor must implement different methods for each type of message it can receive, e.g. If the actor can receive string and integer messages, it must provide two methods:
@@ -60,45 +60,26 @@ public void handleInt(Integer msg) {
 
 **NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive a message of an unsupported data type.**
 
-
-##### Pojo Actor Example
-
 ```java
-// Any class can be an actor
-public class PojoActor1 {
+public class Actor1 {
+	// Self annotation, can be used to obtain the actor's name on runtime
+	@Self
+	private String name = null;
+	
 	@CastHandler
 	public void handleCast(String msg) {
-		System.out.println("Received: " + msg);
+		System.out.println("[" + name + "] Received: " + msg);
 	}
 }
 
 // Register actor
-Woody.register("pojo1", new PojoActor1());
+ActorRef a1 = Woody.register("a1", new Actor1());
 
 // Send a message to actor
-Woody.cast("pojo1", "Hello pojo!");
+a1.cast("Hello actor!");
 ```
 
 
-##### Actor Class Example
-
-```java
-// Extending the Actor class the actor is automatically registered
-Actor actor1 = new Actor() {
-	@CastHandler
-	public void handleCast(String msg) {
-		System.out.println("[" + getName() + "] Received: " + msg);
-	}
-};
-
-// We can use the actor method cast to send an asynchronously message
-actor1.cast("Hello actor {1}");
-
-// But we can still send a message using Woody
-Woody.cast(actor1.getName(), "Hello actor {2}");
-```
-
- 
 ### Topic
 Topics can be used to deliver events to many actors (subscribers of the topic).
 
@@ -125,38 +106,21 @@ public String echo(String event) {
 **NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive an event of an unsupported data type.**
 
 
-##### Pojo Actor Example
-
 ```java
-public class PojoActor2 {
+public class Actor2 {
+	@Self
+	private String name = null;
+	
 	@Subscription("ping")
 	public void ping(Integer msg) {
-		System.out.println("ping: " + msg);
+		System.out.println("[" + name + "] ping: " + msg);
 	}
 }
 
-// When we register and actor without providing a name for the actor
-// the register returns the generated name 
-String actorName = Woody.register(new PojoActor2());
-
-for (int i = 0; i < 5; i ++) {
-	// The event is published to a topic
-	Woody.publish("ping", i);
-	Runner.sleep(1, TimeUnit.SECONDS);
-}
-```
-
-
-##### Actor Class Example
-
-```java
-// We can specify the actor's name on the constructor 
-Actor actor2 = new Actor("actor2") {
-	@Subscription("ping")
-	public void event(Integer msg) {
-		System.out.println("[" + getName() + "] event: " + msg);
-	}			
-};
+// Every time we create/register an actor, a new instance is created
+Woody.newActor(Actor2.class); // Just create a new actor
+Woody.newActor(Actor2.class); // Just create another actor
+Woody.register(new Actor2()); // And a third actor is registered
 
 for (int i = 0; i < 5; i ++) {
 	// The event is published to a topic
@@ -169,34 +133,45 @@ for (int i = 0; i < 5; i ++) {
 ### RPC
 The RPC mechanism is implemented by sending messages, the caller send a message to the actor, the actor computes a response and the caller receives it using a Future object.
 
-To be able to receive RPC calls the actor must extend the class **net.uiqui.woody.Actor**, and provide one or more methods mark with the **CallHandler** annotation to mark the method to process the RPC call.
+To be able to receive RPC calls the actor must provide one or more methods mark with the **CallHandler** annotation to mark the method to process the RPC call.
 
 ```java
-Actor actor3 = new Actor("calculator") {
-	@CallHandler("add")
-	public Integer add(Parameters param) {
-		return param.getA() + param.getB();
-	}
+public class Actor3 {
+	// We can use the Actor annotation to request the actor reference to be injected 
+	@Actor("a1")
+	private ActorRef a1 = null;
 	
-	@CallHandler("multiply")
-	public Integer multiply(Parameters param) {
-		return param.getA() * param.getB();
+	private int counter = 0;
+	
+	@CallHandler("increment")
+	public Integer inc(Integer value) {
+		counter += value;
+		
+		// We can send a message/call to another actor
+		a1.cast("Current value is " + counter);
+		
+		return counter;
 	}
-};
+}
 
-Future<Object> sum = actor3.call("add", new Parameters(2, 3));
-// ... do stuff ...
-System.out.println(sum.get());
+// We can create an actor instance and registration in one operation 
+Woody.newActor("a3", Actor3.class);
 
-// We can also use Woody to perform the call
-sum = Woody.call("calculator", "add", new Parameters(3, 4));
+//... somewhere else in our code ...
+
+// We can also obtain a reference to an actor
+ActorRef a3 = Woody.getActorRef("a3");
+
+Future<Object> currentValue = a3.call("increment", 1);
+
 // ... do stuff ...
-System.out.println(sum.get());
+
+System.out.println("Added 1 and now the value is " + currentValue.get());
 
 // We can specify the maximum time the computation can take to completed
 try {
 	// We can specify the maxim time the computation can take to completed
-	System.out.println(actor3.call("multiply", new Parameters(2, 3)).get(10, TimeUnit.MILLISECONDS));
+	System.out.println("Added 5 and now the value is " + a3.call("increment", 5).get(10, TimeUnit.MILLISECONDS));
 } catch (TimeoutException e) {
 	System.err.println("Computation took to long, we received a timeout");
 }
