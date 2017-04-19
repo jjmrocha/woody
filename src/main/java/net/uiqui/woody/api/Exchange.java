@@ -35,6 +35,10 @@ public class Exchange {
 			subscribers.add(name);
 		}
 	}
+	
+	public void unbind(final String name) {
+		subscribers.remove(name);
+	}	
 
 	public void route(final Object msg) {
 		for (String name : subscribers) {
@@ -43,8 +47,12 @@ public class Exchange {
 			if (actorRef != null) {
 				actorRef.cast(msg);
 			} else {
-				subscribers.remove(name);
+				unbind(name);
 			}
 		}
+	}
+
+	public boolean isEmpty() {
+		return subscribers.isEmpty();
 	}
 }

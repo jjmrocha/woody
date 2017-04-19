@@ -70,6 +70,21 @@ public class Woody {
 		return register(name, actor);
 	}
 
+	public static ActorGroup newActorGroup() {
+		return new ActorGroup();
+	}
+	
+	public static ActorGroup newActorGroup(final String name) {
+		if (!isRegistered(name)) {
+			final ActorGroup actorGroup = newActorGroup();
+			register(name, actorGroup);
+			
+			return actorGroup;
+		} else {
+			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
+		}
+	}
+	
 	/**
 	 * Register one object as an actor 
 	 *
@@ -159,7 +174,7 @@ public class Woody {
 			final ActorRef actorRef = new ActorMailbox(facade);
 
 			if (register || facade.isSearchable()) {
-				mailboxes.putIfAbsent(name, actorRef);
+				register(name, actorRef);
 			}
 
 			registerSubscriptions(name, actor);
@@ -168,6 +183,10 @@ public class Woody {
 		} else {
 			throw new InvalidActorException("Class " + actor.getClass().getName() + " is not a valid actor");
 		}
+	}
+
+	private static void register(final String name, final ActorRef actorRef) {
+		mailboxes.putIfAbsent(name, actorRef);
 	}
 
 	private static boolean isValidActor(final Object actor) {
@@ -205,12 +224,12 @@ public class Woody {
 			}
 		}
 	}
-
-	private static void subscribe(final String topic, final String subscriber) {
-		final Exchange exchange = topics.putIfAbsent(topic, new Exchange(subscriber));
+	
+	private static void subscribe(final String topic, final String actorName) {
+		final Exchange exchange = topics.putIfAbsent(topic, new Exchange(actorName));
 
 		if (exchange != null) {
-			exchange.bind(subscriber);
+			exchange.bind(actorName);
 		}
-	}
+	}	
 }
