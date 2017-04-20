@@ -17,60 +17,40 @@
  */
 package net.uiqui.woody.api.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 public class Ring<T> {
-	private final List<T> storage = new ArrayList<T>();
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final Index index = new Index();
+	private Node<T> pointer = null;
+	private Node<T> first = null;
+	private Node<T> last = null;
 	
-	public boolean add(final T element) {
-		lock.writeLock().lock();
-		
-		try {
-			return storage.add(element);
-		} finally {
-			lock.writeLock().unlock();
+	public synchronized void add(final T value) {
+		if (pointer == null) {
+			pointer = new Node<T>(value, null);
+			pointer.next = pointer;
+			first = pointer;
+			last = pointer;
+		} else {
+			final Node<T> previousLast = last;
+			last = new Node<T>(value, first);
+			previousLast.next = last;
 		}
 	}
 	
-	public boolean remove(final T element) {
-		lock.writeLock().lock();
-		
-		try {
-			return storage.remove(element);
-		} finally {
-			lock.writeLock().unlock();
+	public synchronized T get() {
+		if (pointer == null) {
+			return null;
 		}
+		
+		pointer = pointer.next;
+		return pointer.value;
 	}
 	
-	public T get() {
-		lock.readLock().lock();
-		
-		try {
-			final int size = storage.size();
-			
-			if (size == 0) {
-				return null;
-			}
+	private static class Node<E> {
+		public final E value;
+		public Node<E> next;
 
-			return storage.get(index.next(size));
-		} finally {
-			lock.readLock().unlock();
+		public Node(final E value, final Node<E> next) {
+			this.value = value;
+			this.next = next;
 		}
-	}
-	
-	private static class Index {
-		private int value = 0;
-		
-		public synchronized int next(final int max) {
-			if (value >= max) {
-				value = 0;
-			}
-			
-			return value++;
-		}
-	}
+}
 }

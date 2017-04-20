@@ -94,6 +94,16 @@ public class Runner {
 		} catch (InterruptedException e) {
 		}
 	}
+	
+	/**
+	 * Causes the currently executing thread to sleep
+	 *
+	 * @param delay
+	 *            the sleep period in milliseconds
+	 */
+	public static void sleep(final long delay) {
+		sleep(delay, TimeUnit.MILLISECONDS);
+	}	
 
 	private static boolean useDeamonThreads() {
 		final String propValue = System.getProperty("woody.use.daemon.threads");
