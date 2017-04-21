@@ -17,20 +17,12 @@
  */
 package net.uiqui.woody;
 
-import java.lang.reflect.Method;
-import java.util.concurrent.ConcurrentHashMap;
-
-import net.uiqui.woody.annotations.CallHandler;
-import net.uiqui.woody.annotations.CastHandler;
-import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.api.ActorFacade;
-import net.uiqui.woody.api.ActorMailbox;
 import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.Exchange;
+import net.uiqui.woody.api.Gateway;
+import net.uiqui.woody.api.Registry;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
-import net.uiqui.woody.api.error.InvalidActorException;
 import net.uiqui.woody.lib.ActorFactory;
-import net.uiqui.woody.lib.NameFactory;
 import net.uiqui.woody.lib.Runner;
 
 /**
@@ -39,8 +31,8 @@ import net.uiqui.woody.lib.Runner;
  * and perform rpc calls
  */
 public class Woody {
-	private static final ConcurrentHashMap<String, ActorRef> mailboxes = new ConcurrentHashMap<String, ActorRef>();
-	private static final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
+	private static final Registry registry = new Registry();
+	private static final Gateway gateway = new Gateway();
 
 	/**
 	 * Creates a new instance of an actor
@@ -51,8 +43,7 @@ public class Woody {
 	 */
 	public static ActorRef newActor(final Class<?> clazz) {
 		final Object actor = ActorFactory.newActor(clazz);
-		final String name = NameFactory.get();
-		return prepareActor(name, false, actor);
+		return register(actor);
 	}
 
 	/**
@@ -73,32 +64,31 @@ public class Woody {
 	public static ActorGroup newActorGroup() {
 		return new ActorGroup();
 	}
-	
+
 	public static ActorGroup newActorGroup(final String name) {
-		if (!isRegistered(name)) {
+		if (!registry.isRegistered(name)) {
 			final ActorGroup actorGroup = newActorGroup();
-			register(name, actorGroup);
-			
+			registry.registerActor(name, actorGroup);
+
 			return actorGroup;
 		} else {
 			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 		}
 	}
-	
+
 	/**
-	 * Register one object as an actor 
+	 * Register one object as an actor
 	 *
 	 * @param actor
 	 *            the actor instance
 	 * @return the reference for the actor
 	 */
 	public static ActorRef register(final Object actor) {
-		final String name = NameFactory.get();
-		return prepareActor(name, false, actor);
+		return registry.register(actor);
 	}
 
 	/**
-	 * Register one object as an actor 
+	 * Register one object as an actor
 	 *
 	 * @param name
 	 *            the actor's name
@@ -107,8 +97,8 @@ public class Woody {
 	 * @return the reference for the actor
 	 */
 	public static ActorRef register(final String name, final Object actor) {
-		if (!isRegistered(name)) {
-			return prepareActor(name, true, actor);
+		if (!registry.isRegistered(name)) {
+			return registry.register(name, actor);
 		} else {
 			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 		}
@@ -121,18 +111,7 @@ public class Woody {
 	 *            the actor's name
 	 */
 	public static void unregister(final String name) {
-		mailboxes.remove(name);
-	}
-
-	/**
-	 * Checks if exists an actor registered with the name
-	 *
-	 * @param name
-	 *            the name to check
-	 * @return true, if is name is registered
-	 */
-	public static boolean isRegistered(final String name) {
-		return mailboxes.containsKey(name);
+		registry.unregister(name);
 	}
 
 	/**
@@ -143,7 +122,7 @@ public class Woody {
 	 * @return the actor's reference
 	 */
 	public static ActorRef getActorRef(final String name) {
-		return mailboxes.get(name);
+		return registry.findActor(name);
 	}
 
 	/**
@@ -157,79 +136,17 @@ public class Woody {
 	 *            the event to deliver to all subscribers
 	 */
 	public static void publish(final String topic, final Object payload) {
-		final Exchange exchange = topics.get(topic);
+		Runner.queue(new Runnable() {
+			public void run() {
+				final Exchange exchange = registry.findTopic(topic);
+				final Event event = new Event(topic, payload);
 
-		if (exchange != null) {
-			Runner.queue(new Runnable() {
-				public void run() {
-					exchange.route(new Event(topic, payload));
+				if (exchange != null) {
+					exchange.route(event);
 				}
-			});
-		}
-	}
 
-	private static ActorRef prepareActor(final String name, final boolean register, final Object actor) {
-		if (isValidActor(actor)) {
-			final ActorFacade facade = new ActorFacade(name, actor);
-			final ActorRef actorRef = new ActorMailbox(facade);
-
-			if (register || facade.isSearchable()) {
-				register(name, actorRef);
+				gateway.route(event);
 			}
-
-			registerSubscriptions(name, actor);
-
-			return actorRef;
-		} else {
-			throw new InvalidActorException("Class " + actor.getClass().getName() + " is not a valid actor");
-		}
+		});
 	}
-
-	private static void register(final String name, final ActorRef actorRef) {
-		mailboxes.putIfAbsent(name, actorRef);
-	}
-
-	private static boolean isValidActor(final Object actor) {
-		for (Method method : actor.getClass().getMethods()) {
-			if (method.getParameterTypes().length == 1) {
-				final CastHandler cast = method.getAnnotation(CastHandler.class);
-
-				if (cast != null) {
-					return true;
-				}
-
-				final Subscription subscription = method.getAnnotation(Subscription.class);
-
-				if (subscription != null && subscription.value() != null) {
-					return true;
-				}
-
-				final CallHandler call = method.getAnnotation(CallHandler.class);
-
-				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	private static void registerSubscriptions(final String name, final Object actor) {
-		for (Method method : actor.getClass().getMethods()) {
-			final Subscription subscription = method.getAnnotation(Subscription.class);
-
-			if (subscription != null && subscription.value() != null && method.getParameterTypes().length == 1) {
-				subscribe(subscription.value(), name);
-			}
-		}
-	}
-	
-	private static void subscribe(final String topic, final String actorName) {
-		final Exchange exchange = topics.putIfAbsent(topic, new Exchange(actorName));
-
-		if (exchange != null) {
-			exchange.bind(actorName);
-		}
-	}	
 }
