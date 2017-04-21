@@ -54,15 +54,31 @@ public class ActorGroup implements ActorRef {
 		}
 	}
 	
+	/**
+	 * Adds a new actor to the group
+	 * 
+	 * @param actor the actor to be added
+	 */
 	public void addMember(final ActorRef actor) {
 		group.add(actor);
 	}
 	
+	/**
+	 * Adds a new actor to the group
+	 * 
+	 * @param clazz the class for the actor creation
+	 */
 	public void addMember(final Class<?> clazz) {
 		final ActorRef actor = Woody.newActor(clazz);
-		group.add(actor);
+		addMember(actor);
 	}
 	
+	/**
+	 * Adds some actors to the group
+	 * 
+	 * @param clazz the class for the actor creation
+	 * @param size the number of actor to create
+	 */
 	public void addMembers(final Class<?> clazz, final int size) {
 		for (int i = 0; i < size; i++) {
 			addMember(clazz);

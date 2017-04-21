@@ -22,6 +22,7 @@ import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Gateway;
 import net.uiqui.woody.api.Registry;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
+import net.uiqui.woody.api.util.TopicNames;
 import net.uiqui.woody.lib.ActorFactory;
 import net.uiqui.woody.lib.Runner;
 
@@ -61,10 +62,21 @@ public class Woody {
 		return register(name, actor);
 	}
 
+	/**
+	 * Create and registers a new actor group
+	 * 
+	 * @return the new actor group
+	 */
 	public static ActorGroup newActorGroup() {
 		return new ActorGroup();
 	}
 
+	/**
+	 * Create a new actor group
+	 * 
+	 * @param name the name for the actor group registration
+	 * @return the new actor group
+	 */
 	public static ActorGroup newActorGroup(final String name) {
 		if (!registry.isRegistered(name)) {
 			final ActorGroup actorGroup = newActorGroup();
@@ -145,7 +157,9 @@ public class Woody {
 					exchange.route(event);
 				}
 
-				gateway.route(event);
+				if (!TopicNames.isInternalTopic(topic)) {
+					gateway.route(event);
+				}
 			}
 		});
 	}
