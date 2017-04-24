@@ -20,14 +20,14 @@ package net.uiqui.woody.api;
 import java.util.Queue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.lib.Runner;
 
 public class ActorMailbox implements ActorRef {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
-	private final Semaphore singletonController = new Semaphore(1);
+	private final AtomicBoolean running = new AtomicBoolean(false);
 	
 	private ActorFacade actor = null;
 
@@ -38,7 +38,7 @@ public class ActorMailbox implements ActorRef {
 	public void cast(final Object msg) {
 		queue.offer(msg);
 
-		if (singletonController.tryAcquire()) {
+		if (tryToRun()) {
 			Runner.spawn(new Runnable() {
 				public void run() {
 					do {
@@ -51,12 +51,16 @@ public class ActorMailbox implements ActorRef {
 								}
 							} while (queue.size() > 0);
 						} finally {
-							singletonController.release();
+							running.set(false);
 						}
-					} while (queue.size() > 0 && singletonController.tryAcquire());
+					} while (queue.size() > 0 && tryToRun());
 				}
 			});
 		}
+	}
+
+	private boolean tryToRun() {
+		return running.compareAndSet(false, true);
 	}
 
 	public Future<Object> call(final String operation, final Object payload) {

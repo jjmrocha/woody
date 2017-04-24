@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.api.util.DynamicInvoker;
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.annotations.Actor;
 import net.uiqui.woody.annotations.CallHandler;

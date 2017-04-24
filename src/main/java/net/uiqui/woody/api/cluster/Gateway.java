@@ -15,7 +15,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.cluster;
+
+import net.uiqui.woody.api.Event;
 
 public class Gateway {
 

@@ -19,8 +19,8 @@ package net.uiqui.woody;
 
 import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.Exchange;
-import net.uiqui.woody.api.Gateway;
 import net.uiqui.woody.api.Registry;
+import net.uiqui.woody.api.cluster.Gateway;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
 import net.uiqui.woody.api.util.TopicNames;
 import net.uiqui.woody.lib.ActorFactory;

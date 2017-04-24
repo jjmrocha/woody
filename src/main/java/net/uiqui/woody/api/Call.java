@@ -17,6 +17,8 @@
  */
 package net.uiqui.woody.api;
 
+import net.uiqui.woody.api.util.FutureResult;
+
 public class Call extends FutureResult<Object> {
 	private String operation = null;
 	private Object payload = null;
