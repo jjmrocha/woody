@@ -17,6 +17,7 @@
  */
 package net.uiqui.woody;
 
+import java.io.Serializable;
 import java.util.concurrent.Future;
 
 import net.uiqui.woody.api.error.ActorNotFounfError;
@@ -29,9 +30,9 @@ public class ActorGroup implements ActorRef {
 	private final Ring<ActorRef> group = new Ring<ActorRef>();
 	
 	/* (non-Javadoc)
-	 * @see net.uiqui.woody.ActorRef#cast(java.lang.Object)
+	 * @see net.uiqui.woody.ActorRef#cast(java.io.Serializable)
 	 */
-	public void cast(final Object msg) {
+	public void cast(final Serializable msg) {
 		final ActorRef actor = group.get();
 		
 		if (actor != null) {
@@ -42,13 +43,26 @@ public class ActorGroup implements ActorRef {
 	}
 
 	/* (non-Javadoc)
-	 * @see net.uiqui.woody.ActorRef#call(java.lang.String, java.lang.Object)
+	 * @see net.uiqui.woody.ActorRef#call(java.lang.String, java.io.Serializable)
 	 */
-	public Future<Object> call(final String operation, final Object payload) {
+	public Future<Serializable> call(final String operation, final Serializable payload) {
 		final ActorRef actor = group.get();
 		
 		if (actor != null) {
 			return actor.call(operation, payload);
+		} else {
+			throw new ActorNotFounfError("No actor available on actor group to process the RPC request");
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see net.uiqui.woody.ActorRef#call(java.lang.String)
+	 */
+	public Future<Serializable> call(final String operation) {
+		final ActorRef actor = group.get();
+		
+		if (actor != null) {
+			return actor.call(operation);
 		} else {
 			throw new ActorNotFounfError("No actor available on actor group to process the RPC request");
 		}

@@ -17,6 +17,7 @@
  */
 package net.uiqui.woody;
 
+import java.io.Serializable;
 import java.util.concurrent.Future;
 
 /**
@@ -30,7 +31,7 @@ public interface ActorRef {
 	 *
 	 * @param msg message to send asynchronously
 	 */
-	public void cast(final Object msg);
+	public void cast(final Serializable msg);
 	
 	/**
 	 * Invokes asynchronously one of the methods marked with the CallHandler
@@ -40,5 +41,14 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public Future<Object> call(final String operation, final Object payload);
+	public Future<Serializable> call(final String operation, final Serializable payload);
+	
+	/**
+	 * Invokes asynchronously one of the methods marked with the CallHandler
+	 * annotation for the operation.
+	 *
+	 * @param operation name of the operation to invoke
+	 * @return the method's return value
+	 */
+	public Future<Serializable> call(final String operation);	
 }

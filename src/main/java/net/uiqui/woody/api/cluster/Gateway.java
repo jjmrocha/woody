@@ -17,11 +17,20 @@
  */
 package net.uiqui.woody.api.cluster;
 
+import net.uiqui.woody.ActorRef;
+import net.uiqui.woody.Woody;
 import net.uiqui.woody.api.Event;
 
 public class Gateway {
+	private final ActorRef topicListener = Woody.newActor(TopicListener.class);
+	
 
 	public void route(final Event event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void requestTopic(final String topicName) {
 		// TODO Auto-generated method stub
 		
 	}

@@ -15,26 +15,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.util;
 
 import java.io.Serializable;
 
-public class Event implements Serializable {
-	private static final long serialVersionUID = 4845326949819111720L;
-	
-	private String topic = null;
-	private Object payload = null;
-	
-	public Event(final String topic, final Object payload) {
-		this.topic = topic;
-		this.payload = payload;
-	}
+public final class Empty implements Serializable {
+	private static final long serialVersionUID = 7984162710744368195L;
 
-	public String getTopic() {
-		return topic;
-	}
+	public static final Empty VALUE = new Empty();
 
-	public Object getPayload() {
-		return payload;
+	private Empty() {
 	}
 }

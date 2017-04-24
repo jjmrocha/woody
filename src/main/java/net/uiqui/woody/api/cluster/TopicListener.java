@@ -15,26 +15,31 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.cluster;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Event implements Serializable {
-	private static final long serialVersionUID = 4845326949819111720L;
+import net.uiqui.woody.annotations.CallHandler;
+import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.api.util.TopicNames;
+
+public class TopicListener {
+	private final List<String> topicList = new ArrayList<String>();
+	private Gateway gateway = null;
 	
-	private String topic = null;
-	private Object payload = null;
+	public TopicListener(final Gateway gateway) {
+		this.gateway = gateway;
+	}
 	
-	public Event(final String topic, final Object payload) {
-		this.topic = topic;
-		this.payload = payload;
+	@Subscription(TopicNames.NEW_TOPIC)
+	public void register(final String topicName) {
+		topicList.add(topicName);
+		gateway.requestTopic(topicName);
 	}
-
-	public String getTopic() {
-		return topic;
-	}
-
-	public Object getPayload() {
-		return payload;
+	
+	@CallHandler("topics")
+	public List<String> getList() {
+		return topicList;
 	}
 }

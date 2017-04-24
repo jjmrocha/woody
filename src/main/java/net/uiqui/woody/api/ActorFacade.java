@@ -17,16 +17,18 @@
  */
 package net.uiqui.woody.api;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.api.util.DynamicInvoker;
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.annotations.Actor;
 import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
 import net.uiqui.woody.annotations.Self;
+import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.api.util.DynamicInvoker;
+import net.uiqui.woody.api.util.Empty;
 
 public class ActorFacade extends DynamicInvoker {
 	private boolean searchable = false;
@@ -53,6 +55,12 @@ public class ActorFacade extends DynamicInvoker {
 
 				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
 					addTypeInvoker(call.value(), method.getParameterTypes()[0], method);
+				}
+			} else if (method.getParameterTypes().length == 0) {
+				final CallHandler call = method.getAnnotation(CallHandler.class);
+
+				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
+					addTypeInvoker(call.value(), Empty.class, method);
 				}
 			}
 		}
@@ -102,7 +110,7 @@ public class ActorFacade extends DynamicInvoker {
 	private void handleCall(final Call request) {
 		if (request.tryRun()) {
 			try {
-				final Object reply = invoke(request.getOperation(), request.getPayload());
+				final Serializable reply = (Serializable) invoke(request.getOperation(), request.getPayload());
 				request.setResult(reply);
 			} catch (Throwable cause) {
 				request.setException(cause);

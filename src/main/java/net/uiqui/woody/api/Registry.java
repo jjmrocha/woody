@@ -99,6 +99,12 @@ public class Registry {
 				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
 					return true;
 				}
+			} else if (method.getParameterTypes().length == 0) {
+				final CallHandler call = method.getAnnotation(CallHandler.class);
+
+				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
+					return true;
+				}
 			}
 		}
 

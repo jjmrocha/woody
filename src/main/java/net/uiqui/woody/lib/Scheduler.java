@@ -17,6 +17,7 @@
  */
 package net.uiqui.woody.lib;
 
+import java.io.Serializable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -61,7 +62,7 @@ public class Scheduler {
 	 * @param msg the message to send
 	 * @return the scheduled future
 	 */
-	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Object msg) {
+	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Serializable msg) {
 		final ActorRef actorRef = Woody.getActorRef(name);
 		
 		return scheduleAfter(delay, new Runnable() {
@@ -79,7 +80,7 @@ public class Scheduler {
 	 * @param msg the message to send
 	 * @return the scheduled future
 	 */
-	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Object msg) {
+	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Serializable msg) {
 		final ActorRef actorRef = Woody.getActorRef(name);
 		
 		return scheduleInterval(interval, new Runnable() {

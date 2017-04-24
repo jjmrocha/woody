@@ -17,6 +17,7 @@
  */
 package net.uiqui.woody.api;
 
+import java.io.Serializable;
 import java.util.concurrent.Future;
 
 import net.uiqui.woody.ActorRef;
@@ -31,15 +32,20 @@ public class LazyActorRef implements ActorRef {
 		this.name = name;
 	}
 
-	public void cast(final Object msg) {
+	public void cast(final Serializable msg) {
 		final ActorRef ref = getActorRef();
 		ref.cast(msg);
 	}
 
-	public Future<Object> call(final String operation, final Object payload) {
+	public Future<Serializable> call(final String operation, final Serializable payload) {
 		final ActorRef ref = getActorRef();
 		return ref.call(operation, payload);
 	}
+	
+	public Future<Serializable> call(final String operation) {
+		final ActorRef ref = getActorRef();
+		return ref.call(operation);
+	}	
 
 	private ActorRef getActorRef() {
 		if (actor == null) {

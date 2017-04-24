@@ -17,6 +17,8 @@
  */
 package net.uiqui.woody;
 
+import java.io.Serializable;
+
 import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Registry;
@@ -147,7 +149,7 @@ public class Woody {
 	 * @param payload
 	 *            the event to deliver to all subscribers
 	 */
-	public static void publish(final String topic, final Object payload) {
+	public static void publish(final String topic, final Serializable payload) {
 		Runner.queue(new Runnable() {
 			public void run() {
 				final Exchange exchange = registry.findTopic(topic);
