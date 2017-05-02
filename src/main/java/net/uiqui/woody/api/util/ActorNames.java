@@ -17,24 +17,10 @@
  */
 package net.uiqui.woody.api.util;
 
-public class TopicNames {
-	public static final String NEW_TOPIC = "woody.topic.creation";
-	public static final String NODE_UP = "woody.node.up";
-	public static final String NODE_DOWN = "woody.node.down";
-	
-	private static final String [] INTERNAL_TOPICS = {
-		NEW_TOPIC,
-		NODE_UP,
-		NODE_DOWN
-	};
-	
-	public static boolean isInternalTopic(final String name) {
-		for (int i = 0; i < INTERNAL_TOPICS.length; i++) {
-			if (INTERNAL_TOPICS[i].equals(name)) {
-				return true;
-			}
-		}
-		
-		return false;
-	}
+public class ActorNames {
+	public static final String CLUSTER_TOPIC_MANAGER = "woody.cluster.topic.manager";
+	public static final String CLUSTER_NODE_MANAGER = "woody.cluster.node.manager";
+	public static final String CLUSTER_GLOBAL_REGESTRY = "woody.cluster.global.regestry";
+	public static final String CLUSTER_MESSAGE_PROCESSOR = "woody.cluster.message.processor";
+	public static final String CLUSTER_MESSAGE_SENDER = "woody.cluster.message.sender";
 }

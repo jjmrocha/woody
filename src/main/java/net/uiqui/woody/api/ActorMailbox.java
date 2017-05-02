@@ -23,11 +23,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.api.util.Empty;
 import net.uiqui.woody.lib.Runner;
 
-public class ActorMailbox implements ActorRef {
+public class ActorMailbox extends AbsActorRef {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final AtomicBoolean running = new AtomicBoolean(false);
 	

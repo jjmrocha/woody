@@ -15,26 +15,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.util;
+package net.uiqui.woody.api.cluster;
 
-public class TopicNames {
-	public static final String NEW_TOPIC = "woody.topic.creation";
-	public static final String NODE_UP = "woody.node.up";
-	public static final String NODE_DOWN = "woody.node.down";
+import java.io.Serializable;
+
+import org.jgroups.Address;
+
+public class MessageReceived implements Serializable {
+	private static final long serialVersionUID = 1579420424182265154L;
 	
-	private static final String [] INTERNAL_TOPICS = {
-		NEW_TOPIC,
-		NODE_UP,
-		NODE_DOWN
-	};
-	
-	public static boolean isInternalTopic(final String name) {
-		for (int i = 0; i < INTERNAL_TOPICS.length; i++) {
-			if (INTERNAL_TOPICS[i].equals(name)) {
-				return true;
-			}
-		}
-		
-		return false;
+	private Address address = null;
+	private Serializable payload = null;
+
+	public MessageReceived(final Address address, final Serializable payload) {
+		this.address = address;
+		this.payload = payload;
+	}
+
+	public Address getAddress() {
+		return address;
+	}
+
+	public Serializable getPayload() {
+		return payload;
 	}
 }

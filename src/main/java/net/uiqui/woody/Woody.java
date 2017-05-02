@@ -89,6 +89,33 @@ public class Woody {
 			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 		}
 	}
+	
+	/**
+	 * Create and registers a new actor group
+	 * 
+	 * @param clazz the class for the actor creation
+	 * @param size the number of actor to create
+	 * @return the new actor group
+	 */
+	public static ActorGroup newActorGroup(final Class<?> clazz, final int size) {
+		final ActorGroup actorGroup = newActorGroup();
+		actorGroup.addMembers(clazz, size);
+		return actorGroup;
+	}
+
+	/**
+	 * Create a new actor group
+	 * 
+	 * @param name the name for the actor group registration
+	 * @param clazz the class for the actor creation
+	 * @param size the number of actor to create 
+	 * @return the new actor group
+	 */
+	public static ActorGroup newActorGroup(final String name, final Class<?> clazz, final int size) {
+		final ActorGroup actorGroup = newActorGroup(name);
+		actorGroup.addMembers(clazz, size);
+		return actorGroup;
+	}	
 
 	/**
 	 * Register one object as an actor

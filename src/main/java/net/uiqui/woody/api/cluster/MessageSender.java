@@ -17,29 +17,32 @@
  */
 package net.uiqui.woody.api.cluster;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
-import net.uiqui.woody.annotations.CallHandler;
-import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.api.util.TopicNames;
+import org.jgroups.Address;
+import org.jgroups.JChannel;
 
-public class TopicListener {
-	private final List<String> topicList = new ArrayList<String>();
-	private Gateway gateway = null;
+import net.uiqui.woody.annotations.CastHandler;
+
+public class MessageSender {
+	private JChannel channel = null;
 	
-	public TopicListener(final Gateway gateway) {
-		this.gateway = gateway;
+	public MessageSender(final JChannel channel) {
+		this.channel = channel;
 	}
 	
-	@Subscription(TopicNames.NEW_TOPIC)
-	public void register(final String topicName) {
-		topicList.add(topicName);
-		gateway.requestTopic(topicName);
+	@CastHandler
+	public void handleMessage(final SendRequest request) throws Exception {
+		if (request.getAddresses().isEmpty()) {
+			send(null, request.getPayload());
+		} else {
+			for (Address address : request.getAddresses()) {
+				send(address, request.getPayload());
+			}
+		}
 	}
-	
-	@CallHandler("topics")
-	public List<String> getList() {
-		return topicList;
+
+	private void send(final Address address, final Serializable payload) throws Exception {
+		channel.send(address, payload);
 	}
 }

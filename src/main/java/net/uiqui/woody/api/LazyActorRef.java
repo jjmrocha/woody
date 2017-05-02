@@ -24,7 +24,7 @@ import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.Woody;
 import net.uiqui.woody.api.error.ActorNotFounfError;
 
-public class LazyActorRef implements ActorRef {
+public class LazyActorRef extends AbsActorRef {
 	private String name = null;
 	private ActorRef actor = null;
 	

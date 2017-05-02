@@ -35,7 +35,7 @@ public class Ring<T> {
 		}
 	}
 	
-	public synchronized T get() {
+	public synchronized T next() {
 		if (pointer == null) {
 			return null;
 		}

@@ -51,4 +51,23 @@ public interface ActorRef {
 	 * @return the method's return value
 	 */
 	public Future<Serializable> call(final String operation);	
+	
+	/**
+	 * Invokes synchronously one of the methods marked with the CallHandler
+	 * annotation for the operation.
+	 *
+	 * @param operation name of the operation to invoke
+	 * @param payload call's argument
+	 * @return the method's return value
+	 */
+	public Serializable syncCall(final String operation, final Serializable payload);
+	
+	/**
+	 * Invokes synchronously one of the methods marked with the CallHandler
+	 * annotation for the operation.
+	 *
+	 * @param operation name of the operation to invoke
+	 * @return the method's return value
+	 */
+	public Serializable syncCall(final String operation);		
 }
