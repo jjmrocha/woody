@@ -60,7 +60,7 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public Serializable syncCall(final String operation, final Serializable payload);
+	public <T extends Serializable> T syncCall(final String operation, final Serializable payload);
 	
 	/**
 	 * Invokes synchronously one of the methods marked with the CallHandler
@@ -69,5 +69,5 @@ public interface ActorRef {
 	 * @param operation name of the operation to invoke
 	 * @return the method's return value
 	 */
-	public Serializable syncCall(final String operation);		
+	public <T extends Serializable> T syncCall(final String operation);		
 }

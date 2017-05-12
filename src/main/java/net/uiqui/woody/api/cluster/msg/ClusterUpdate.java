@@ -15,34 +15,36 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.cluster;
+package net.uiqui.woody.api.cluster.msg;
 
 import java.io.Serializable;
+import java.util.List;
 
-import org.jgroups.Address;
-import org.jgroups.JChannel;
+import net.uiqui.woody.api.cluster.Node;
 
-import net.uiqui.woody.annotations.CastHandler;
-
-public class MessageSender {
-	private JChannel channel = null;
+public class ClusterUpdate implements Serializable {
+	private static final long serialVersionUID = 6657062121485662485L;
 	
-	public MessageSender(final JChannel channel) {
-		this.channel = channel;
+	private List<Node> nodes = null;
+	
+	public ClusterUpdate(final List<Node> nodes) {
+		this.nodes = nodes;
+	}	
+
+	public List<Node> getNodes() {
+		return nodes;
 	}
-	
-	@CastHandler
-	public void handleMessage(final SendRequest request) throws Exception {
-		if (request.getAddresses().isEmpty()) {
-			send(null, request.getPayload());
-		} else {
-			for (Address address : request.getAddresses()) {
-				send(address, request.getPayload());
-			}
+
+	public boolean contains(final Node node) {
+		if (nodes == null) {
+			return false;
 		}
+		
+		return nodes.contains(node);
 	}
 
-	private void send(final Address address, final Serializable payload) throws Exception {
-		channel.send(address, payload);
+	@Override
+	public String toString() {
+		return "ClusterUpdate [nodes=" + nodes + "]";
 	}
 }

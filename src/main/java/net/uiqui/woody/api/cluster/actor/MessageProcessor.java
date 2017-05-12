@@ -15,25 +15,39 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.cluster;
+package net.uiqui.woody.api.cluster.actor;
 
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.Woody;
+import net.uiqui.woody.annotations.Actor;
 import net.uiqui.woody.annotations.CastHandler;
+import net.uiqui.woody.api.cluster.Node;
 import net.uiqui.woody.api.cluster.msg.CastMessage;
-import net.uiqui.woody.api.cluster.msg.ClusterEvent;
+import net.uiqui.woody.api.cluster.msg.EventBroadcast;
+import net.uiqui.woody.api.cluster.msg.MessageReceived;
+import net.uiqui.woody.api.util.ActorNames;
 
 public class MessageProcessor {
+	@Actor(ActorNames.CLUSTER_TOPIC_MANAGER) private ActorRef topic = null;
+	
 	@CastHandler
 	public void handleMessage(final MessageReceived msg) {
-		if (msg.getPayload() instanceof ClusterEvent) {
-			handleEvent((ClusterEvent) msg.getPayload());
-		} else if (msg.getPayload() instanceof CastMessage) {
-			handleCast((CastMessage) msg.getPayload());
+		if (msg.getPayload() instanceof EventBroadcast) {
+			handleEvent((EventBroadcast) msg.getPayload());
+		} else {
+			if (msg.getPayload() instanceof CastMessage) {
+				final CastMessage castMessage = (CastMessage) msg.getPayload();
+				
+				if (ActorNames.CLUSTER_TOPIC_MANAGER.equals(castMessage.getName())) {
+					topic.cast(msg);
+				} else {
+					handleCast(msg.getFrom(), castMessage);
+				}
+			}
 		}
 	}
 	
-	private void handleCast(final CastMessage msg) {
+	private void handleCast(final Node node, final CastMessage msg) {
 		final ActorRef actorRef = Woody.getActorRef(msg.getName());
 		
 		if (actorRef != null) {
@@ -41,7 +55,7 @@ public class MessageProcessor {
 		}
 	}
 
-	public void handleEvent(final ClusterEvent event) {
-		Woody.publish(event.getTopic(), event.getPayload());
+	public void handleEvent(final EventBroadcast event) {
+		Woody.publishLocally(event.getTopic(), event.getPayload());
 	}
 }

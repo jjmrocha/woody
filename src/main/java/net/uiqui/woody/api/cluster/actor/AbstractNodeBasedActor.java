@@ -15,31 +15,28 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.cluster.msg;
+package net.uiqui.woody.api.cluster.actor;
 
-import java.io.Serializable;
-import java.util.List;
+import net.uiqui.woody.api.cluster.Node;
+import net.uiqui.woody.api.util.FutureResult;
 
-import org.jgroups.Address;
-
-public class NodeList implements Serializable {
-	private static final long serialVersionUID = 6657062121485662485L;
+public abstract class AbstractNodeBasedActor {
+	private FutureResult<Node> selfFuture = null;
+	private Node self = null;
 	
-	private List<Address> nodes = null;
-	
-	public NodeList(final List<Address> nodes) {
-		this.nodes = nodes;
-	}	
-
-	public List<Address> getNodes() {
-		return nodes;
+	public AbstractNodeBasedActor(final FutureResult<Node> selfFuture) {
+		this.selfFuture = selfFuture;
 	}
-
-	public boolean contains(final Address node) {
-		if (nodes == null) {
-			return false;
+	
+	public Node self() {
+		if (self == null) {
+			try {
+				self = selfFuture.get();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
 		}
 		
-		return nodes.contains(node);
+		return self;
 	}
 }

@@ -15,52 +15,58 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.cluster;
+package net.uiqui.woody.api.cluster.actor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-
-import org.jgroups.Address;
+import java.util.Set;
+import java.util.TreeSet;
 
 import net.uiqui.woody.Woody;
 import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
-import net.uiqui.woody.api.cluster.msg.NodeList;
+import net.uiqui.woody.api.cluster.Node;
+import net.uiqui.woody.api.cluster.msg.ClusterUpdate;
+import net.uiqui.woody.api.util.FutureResult;
 import net.uiqui.woody.api.util.TopicNames;
 
-public class ClusterManager {
-	private Address node = null;
-	private List<Address> nodes = new ArrayList<Address>();
+public class ClusterManager extends AbstractNodeBasedActor {
+	private Set<Node> nodes = new TreeSet<Node>();
 	
-	public ClusterManager(final Address node) {
-		this.node = node;
+	public ClusterManager(final FutureResult<Node> selfFuture) {
+		super(selfFuture);
 	}
 	
 	@CallHandler("node")
-	public Address getNode() {
-		return node;
+	public Node getNode() {
+		return self();
 	}
 	
 	@CallHandler("nodes")
-	public List<Address> getNodes() {
+	public Collection<Node> getNodes() {
 		return nodes;
 	}
 	
 	@CastHandler
-	public void handleView(final NodeList nodeList) {
-		for(Address newNode : nodeList.getNodes()) {
-			if (!newNode.equals(node)) {
+	public void handleClusterUpdate(final ClusterUpdate cluster) {
+		final List<Node> toRemove = new ArrayList<Node>();
+		
+		for (Node oldNode : nodes) {
+			if (!cluster.contains(oldNode)) {
+				toRemove.add(oldNode);
+				Woody.publish(TopicNames.NODE_DOWN, oldNode);
+			}
+		}
+		
+		nodes.removeAll(toRemove);
+		
+		for(Node newNode : cluster.getNodes()) {
+			if (!newNode.equals(self())) {
 				if (!nodes.contains(newNode)) {
 					nodes.add(newNode);
 					Woody.publish(TopicNames.NODE_UP, newNode);
 				}
-			}
-		}
-		
-		for (Address oldNode : nodes) {
-			if (!nodeList.contains(oldNode)) {
-				nodes.remove(oldNode);
-				Woody.publish(TopicNames.NODE_DOWN, oldNode);
 			}
 		}
 	}

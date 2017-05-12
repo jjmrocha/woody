@@ -27,11 +27,12 @@ public abstract class AbsActorRef implements ActorRef {
 	/* (non-Javadoc)
 	 * @see net.uiqui.woody.ActorRef#syncCall(java.lang.String, java.io.Serializable)
 	 */
-	public Serializable syncCall(final String operation, final Serializable payload) {
+	@SuppressWarnings("unchecked")
+	public <T extends Serializable> T syncCall(final String operation, final Serializable payload) {
 		final Future<Serializable> future = call(operation, payload); 
 		
 		try {
-			return future.get();
+			return (T) future.get();
 		} catch (Exception e) {
 			throw new WoodyException("Error calling operation " + operation, e);
 		}
@@ -40,11 +41,12 @@ public abstract class AbsActorRef implements ActorRef {
 	/* (non-Javadoc)
 	 * @see net.uiqui.woody.ActorRef#syncCall(java.lang.String)
 	 */
-	public Serializable syncCall(final String operation) {
+	@SuppressWarnings("unchecked")
+	public <T extends Serializable> T syncCall(final String operation) {
 		final Future<Serializable> future = call(operation); 
 		
 		try {
-			return future.get();
+			return (T) future.get();
 		} catch (Exception e) {
 			throw new WoodyException("Error calling operation " + operation, e);
 		}

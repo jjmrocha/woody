@@ -15,37 +15,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.cluster;
+package net.uiqui.woody.api.cluster.msg;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
 
-import org.jgroups.Address;
-
-public class SendRequest implements Serializable {
-	private static final long serialVersionUID = 1579420424182265154L;
+public class EventBroadcast implements Serializable {
+	private static final long serialVersionUID = 8537313324456412898L;
 	
-	private Set<Address> addresses = new TreeSet<Address>();
+	private String topic = null;
 	private Serializable payload = null;
 	
-	public SendRequest(final Serializable payload) {
-		this.payload = payload;
-	}
-	
-	public SendRequest(final Address address, final Serializable payload) {
-		this.addresses.add(address);
-		this.payload = payload;
-	}
-	
-	public SendRequest(final Collection<Address> addresses, final Serializable payload) {
-		this.addresses.addAll(addresses);
+	public EventBroadcast(final String topic, final Serializable payload) {
+		this.topic = topic;
 		this.payload = payload;
 	}
 
-	public Collection<Address> getAddresses() {
-		return addresses;
+	public String getTopic() {
+		return topic;
 	}
 
 	public Serializable getPayload() {
