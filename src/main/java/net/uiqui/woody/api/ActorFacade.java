@@ -36,7 +36,7 @@ public class ActorFacade extends DynamicInvoker {
 	public ActorFacade(final String name, final Object actor) {
 		super(actor);
 
-		for (Method method : actor.getClass().getMethods()) {
+		for (final Method method : actor.getClass().getMethods()) {
 			if (method.getParameterTypes().length == 1) {
 				final CastHandler cast = method.getAnnotation(CastHandler.class);
 

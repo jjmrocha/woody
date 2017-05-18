@@ -80,7 +80,7 @@ public class Registry {
 	}
 
 	private boolean isValidActor(final Object actor) {
-		for (Method method : actor.getClass().getMethods()) {
+		for (final Method method : actor.getClass().getMethods()) {
 			if (method.getParameterTypes().length == 1) {
 				final CastHandler cast = method.getAnnotation(CastHandler.class);
 
@@ -112,7 +112,7 @@ public class Registry {
 	}
 
 	private void registerSubscriptions(final String name, final Object actor) {
-		for (Method method : actor.getClass().getMethods()) {
+		for (final Method method : actor.getClass().getMethods()) {
 			final Subscription subscription = method.getAnnotation(Subscription.class);
 
 			if (subscription != null && subscription.value() != null && method.getParameterTypes().length == 1) {

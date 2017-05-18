@@ -42,7 +42,7 @@ public class Exchange {
 	}	
 
 	public void route(final Serializable msg) {
-		for (String name : subscribers) {
+		for (final String name : subscribers) {
 			final ActorRef actorRef = Woody.getActorRef(name);
 
 			if (actorRef != null) {

@@ -52,7 +52,7 @@ public class ClusterManager extends AbstractNodeBasedActor {
 	public void handleClusterUpdate(final ClusterUpdate cluster) {
 		final List<Node> toRemove = new ArrayList<Node>();
 		
-		for (Node oldNode : nodes) {
+		for (final Node oldNode : nodes) {
 			if (!cluster.contains(oldNode)) {
 				toRemove.add(oldNode);
 				Woody.publish(TopicNames.NODE_DOWN, oldNode);
@@ -61,7 +61,7 @@ public class ClusterManager extends AbstractNodeBasedActor {
 		
 		nodes.removeAll(toRemove);
 		
-		for(Node newNode : cluster.getNodes()) {
+		for(final Node newNode : cluster.getNodes()) {
 			if (!newNode.equals(self())) {
 				if (!nodes.contains(newNode)) {
 					nodes.add(newNode);

@@ -73,7 +73,7 @@ public class TopicManager extends AbstractNodeBasedActor {
 
 	@Subscription(TopicNames.NODE_DOWN)
 	public void handleNodeDown(final Node node) {
-		for (Set<Node> nodes : subscriptions.values()) {
+		for (final Set<Node> nodes : subscriptions.values()) {
 			nodes.remove(node);
 		}
 	}
@@ -98,7 +98,7 @@ public class TopicManager extends AbstractNodeBasedActor {
 	
 	public void handleRoutingRequest(final Node from, RoutingRequest request) {		
 		if (!from.equals(self())) {
-			for (String topic : request.topics) {				
+			for (final String topic : request.topics) {				
 				Set<Node> nodes = subscriptions.get(topic);
 
 				if (nodes != null) {

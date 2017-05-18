@@ -74,7 +74,7 @@ public class DynamicInvoker {
 			return method;
 		}
 		
-		for (Map.Entry<KeyType, Method> entry : methods.entrySet()) {
+		for (final Map.Entry<KeyType, Method> entry : methods.entrySet()) {
 			final KeyType entryKeyType = entry.getKey();
 			
 			if (entryKeyType.key.equals(key) && entryKeyType.type.isAssignableFrom(type)) {
