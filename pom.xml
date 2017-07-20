@@ -9,6 +9,10 @@
   <version>2.3.0</version>
   <name>Woody</name>
   <description>Basic Actor model implementation</description>
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>           
+  </properties>
   <url>https://github.com/jjmrocha/woody</url>
   <licenses>
     <license>
