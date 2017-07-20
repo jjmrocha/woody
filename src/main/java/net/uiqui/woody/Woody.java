@@ -17,10 +17,10 @@
  */
 package net.uiqui.woody;
 
-import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Registry;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
+import net.uiqui.woody.api.msg.Event;
 import net.uiqui.woody.lib.ActorFactory;
 import net.uiqui.woody.lib.Runner;
 

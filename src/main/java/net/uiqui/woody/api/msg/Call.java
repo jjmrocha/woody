@@ -15,19 +15,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api;
+package net.uiqui.woody.api.msg;
 
-public class Event {
-	private String topic = null;
+import net.uiqui.woody.api.util.FutureResult;
+
+public class Call extends FutureResult<Object> {
+	private String operation = null;
 	private Object payload = null;
-	
-	public Event(final String topic, final Object payload) {
-		this.topic = topic;
+
+	public Call(final String operation, final Object payload) {
+		this.operation = operation;
 		this.payload = payload;
 	}
-
-	public String getTopic() {
-		return topic;
+	
+	public String getOperation() {
+		return operation;
 	}
 
 	public Object getPayload() {

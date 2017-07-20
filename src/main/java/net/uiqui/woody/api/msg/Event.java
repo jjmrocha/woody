@@ -15,12 +15,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.util;
+package net.uiqui.woody.api.msg;
 
-public class ActorNames {
-	public static final String CLUSTER_TOPIC_MANAGER = "woody.cluster.topic.manager";
-	public static final String CLUSTER_NODE_MANAGER = "woody.cluster.node.manager";
-	public static final String CLUSTER_GLOBAL_REGESTRY = "woody.cluster.global.regestry";
-	public static final String CLUSTER_MESSAGE_PROCESSOR = "woody.cluster.message.processor";
-	public static final String CLUSTER_MESSAGE_SENDER = "woody.cluster.message.sender";
+public class Event {
+	private String topic = null;
+	private Object payload = null;
+	
+	public Event(final String topic, final Object payload) {
+		this.topic = topic;
+		this.payload = payload;
+	}
+
+	public String getTopic() {
+		return topic;
+	}
+
+	public Object getPayload() {
+		return payload;
+	}
 }

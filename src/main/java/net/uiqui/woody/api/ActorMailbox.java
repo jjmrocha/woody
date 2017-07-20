@@ -23,6 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.uiqui.woody.ActorRef;
+import net.uiqui.woody.api.msg.Call;
 import net.uiqui.woody.api.util.Empty;
 import net.uiqui.woody.lib.Runner;
 

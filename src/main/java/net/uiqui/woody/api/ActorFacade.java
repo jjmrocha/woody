@@ -27,6 +27,8 @@ import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
 import net.uiqui.woody.annotations.Self;
 import net.uiqui.woody.annotations.Subscription;
+import net.uiqui.woody.api.msg.Call;
+import net.uiqui.woody.api.msg.Event;
 import net.uiqui.woody.api.util.DynamicInvoker;
 import net.uiqui.woody.api.util.Empty;
 
