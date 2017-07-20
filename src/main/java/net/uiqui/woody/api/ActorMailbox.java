@@ -17,16 +17,16 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
 import java.util.Queue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.api.util.Empty;
 import net.uiqui.woody.lib.Runner;
 
-public class ActorMailbox extends AbsActorRef {
+public class ActorMailbox implements ActorRef {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final AtomicBoolean running = new AtomicBoolean(false);
 	
@@ -36,7 +36,7 @@ public class ActorMailbox extends AbsActorRef {
 		this.actor = actor;
 	}
 
-	public void cast(final Serializable msg) {
+	public void cast(final Object msg) {
 		queue.offer(msg);
 
 		if (tryToRun()) {
@@ -64,13 +64,13 @@ public class ActorMailbox extends AbsActorRef {
 		return running.compareAndSet(false, true);
 	}
 
-	public Future<Serializable> call(final String operation, final Serializable payload) {
+	public Future<Object> call(final String operation, final Object payload) {
 		final Call request = new Call(operation, payload);
 		cast(request);
 		return request;
 	}
 	
-	public Future<Serializable> call(final String operation) {
+	public Future<Object> call(final String operation) {
 		return call(operation, Empty.VALUE);
 	}
 }

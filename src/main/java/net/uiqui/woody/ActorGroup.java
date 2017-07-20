@@ -17,23 +17,21 @@
  */
 package net.uiqui.woody;
 
-import java.io.Serializable;
 import java.util.concurrent.Future;
 
-import net.uiqui.woody.api.AbsActorRef;
 import net.uiqui.woody.api.error.ActorNotFounfError;
 import net.uiqui.woody.api.util.Ring;
 
 /**
  * This class can be use to interact with a group of actors
  */
-public class ActorGroup extends AbsActorRef {
+public class ActorGroup implements ActorRef {
 	private final Ring<ActorRef> group = new Ring<ActorRef>();
 	
 	/* (non-Javadoc)
 	 * @see net.uiqui.woody.ActorRef#cast(java.io.Serializable)
 	 */
-	public void cast(final Serializable msg) {
+	public void cast(final Object msg) {
 		final ActorRef actor = group.next();
 		
 		if (actor != null) {
@@ -46,7 +44,7 @@ public class ActorGroup extends AbsActorRef {
 	/* (non-Javadoc)
 	 * @see net.uiqui.woody.ActorRef#call(java.lang.String, java.io.Serializable)
 	 */
-	public Future<Serializable> call(final String operation, final Serializable payload) {
+	public Future<Object> call(final String operation, final Object payload) {
 		final ActorRef actor = group.next();
 		
 		if (actor != null) {
@@ -59,7 +57,7 @@ public class ActorGroup extends AbsActorRef {
 	/* (non-Javadoc)
 	 * @see net.uiqui.woody.ActorRef#call(java.lang.String)
 	 */
-	public Future<Serializable> call(final String operation) {
+	public Future<Object> call(final String operation) {
 		final ActorRef actor = group.next();
 		
 		if (actor != null) {

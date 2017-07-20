@@ -17,15 +17,11 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
-
-public class Event implements Serializable {
-	private static final long serialVersionUID = 4845326949819111720L;
-	
+public class Event {
 	private String topic = null;
-	private Serializable payload = null;
+	private Object payload = null;
 	
-	public Event(final String topic, final Serializable payload) {
+	public Event(final String topic, final Object payload) {
 		this.topic = topic;
 		this.payload = payload;
 	}
@@ -34,7 +30,7 @@ public class Event implements Serializable {
 		return topic;
 	}
 
-	public Serializable getPayload() {
+	public Object getPayload() {
 		return payload;
 	}
 }

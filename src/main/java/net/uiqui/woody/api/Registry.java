@@ -21,12 +21,10 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
 import net.uiqui.woody.ActorRef;
-import net.uiqui.woody.Woody;
 import net.uiqui.woody.annotations.CallHandler;
 import net.uiqui.woody.annotations.CastHandler;
 import net.uiqui.woody.annotations.Subscription;
 import net.uiqui.woody.api.error.InvalidActorException;
-import net.uiqui.woody.api.util.TopicNames;
 import net.uiqui.woody.lib.NameFactory;
 
 public class Registry {
@@ -126,8 +124,6 @@ public class Registry {
 
 		if (exchange != null) {
 			exchange.bind(actorName);
-		} else if (!TopicNames.isInternalTopic(topic)) {
-			Woody.publish(TopicNames.NEW_TOPIC, topic);
 		}
 	}	
 }

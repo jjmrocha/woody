@@ -17,17 +17,13 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
-
 import net.uiqui.woody.api.util.FutureResult;
 
-public class Call extends FutureResult<Serializable> implements Serializable {
-	private static final long serialVersionUID = 3916564301137702073L;
-	
+public class Call extends FutureResult<Object> {
 	private String operation = null;
 	private Object payload = null;
 
-	public Call(final String operation, final Serializable payload) {
+	public Call(final String operation, final Object payload) {
 		this.operation = operation;
 		this.payload = payload;
 	}

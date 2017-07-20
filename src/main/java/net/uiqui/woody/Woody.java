@@ -17,14 +17,10 @@
  */
 package net.uiqui.woody;
 
-import java.io.Serializable;
-
 import net.uiqui.woody.api.Event;
 import net.uiqui.woody.api.Exchange;
 import net.uiqui.woody.api.Registry;
-import net.uiqui.woody.api.cluster.Gateway;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
-import net.uiqui.woody.api.util.TopicNames;
 import net.uiqui.woody.lib.ActorFactory;
 import net.uiqui.woody.lib.Runner;
 
@@ -35,7 +31,6 @@ import net.uiqui.woody.lib.Runner;
  */
 public class Woody {
 	private static final Registry registry = new Registry();
-	private static final Gateway gateway = new Gateway();
 
 	/**
 	 * Creates a new instance of an actor
@@ -165,32 +160,6 @@ public class Woody {
 	public static ActorRef getActorRef(final String name) {
 		return registry.findActor(name);
 	}
-
-	/**
-	 * Publish a event to a topic (without propagating the event to other nodes), all actors subscribing the topic will receive
-	 * the message (an actor subscribes a topic, by annotating a method with the
-	 * Subscription annotation)
-	 *
-	 * @param topic
-	 *            the topic's name
-	 * @param payload
-	 *            the event to deliver to all subscribers
-	 */
-	public static void publishLocally(final String topic, final Serializable payload) {
-		publishLocally(new Event(topic, payload));
-	}
-	
-	private static void publishLocally(final Event event) {
-		Runner.queue(new Runnable() {
-			public void run() {
-				final Exchange exchange = registry.findTopic(event.getTopic());
-
-				if (exchange != null) {
-					exchange.route(event);
-				}
-			}
-		});
-	}
 	
 	/**
 	 * Publish a event to a topic, all actors subscribing the topic will receive
@@ -202,12 +171,17 @@ public class Woody {
 	 * @param payload
 	 *            the event to deliver to all subscribers
 	 */
-	public static void publish(final String topic, final Serializable payload) {
+	public static void publish(final String topic, final Object payload) {
 		final Event event = new Event(topic, payload);
-		publishLocally(event);
 		
-		if (!TopicNames.isInternalTopic(topic)) {
-			gateway.route(event);
-		}
+		Runner.queue(new Runnable() {
+			public void run() {
+				final Exchange exchange = registry.findTopic(event.getTopic());
+
+				if (exchange != null) {
+					exchange.route(event);
+				}
+			}
+		});
 	}	
 }

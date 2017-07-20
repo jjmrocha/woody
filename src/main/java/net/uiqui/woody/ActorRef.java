@@ -17,8 +17,9 @@
  */
 package net.uiqui.woody;
 
-import java.io.Serializable;
 import java.util.concurrent.Future;
+
+import net.uiqui.woody.api.error.WoodyException;
 
 /**
  * This interface allows the interaction with an actor  
@@ -31,7 +32,7 @@ public interface ActorRef {
 	 *
 	 * @param msg message to send asynchronously
 	 */
-	public void cast(final Serializable msg);
+	public void cast(final Object msg);
 	
 	/**
 	 * Invokes asynchronously one of the methods marked with the CallHandler
@@ -41,7 +42,7 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public Future<Serializable> call(final String operation, final Serializable payload);
+	public Future<Object> call(final String operation, final Object payload);
 	
 	/**
 	 * Invokes asynchronously one of the methods marked with the CallHandler
@@ -50,7 +51,7 @@ public interface ActorRef {
 	 * @param operation name of the operation to invoke
 	 * @return the method's return value
 	 */
-	public Future<Serializable> call(final String operation);	
+	public Future<Object> call(final String operation);	
 	
 	/**
 	 * Invokes synchronously one of the methods marked with the CallHandler
@@ -60,7 +61,15 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public <T extends Serializable> T syncCall(final String operation, final Serializable payload);
+	public default Object syncCall(final String operation, final Object payload) {
+		final Future<Object> future = call(operation, payload); 
+		
+		try {
+			return future.get();
+		} catch (Exception e) {
+			throw new WoodyException("Error calling operation " + operation, e);
+		}
+	}
 	
 	/**
 	 * Invokes synchronously one of the methods marked with the CallHandler
@@ -69,5 +78,13 @@ public interface ActorRef {
 	 * @param operation name of the operation to invoke
 	 * @return the method's return value
 	 */
-	public <T extends Serializable> T syncCall(final String operation);		
+	public default Object syncCall(final String operation) {
+		final Future<Object> future = call(operation); 
+		
+		try {
+			return future.get();
+		} catch (Exception e) {
+			throw new WoodyException("Error calling operation " + operation, e);
+		}
+	}		
 }

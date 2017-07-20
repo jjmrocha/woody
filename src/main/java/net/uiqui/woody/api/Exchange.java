@@ -17,7 +17,6 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -41,7 +40,7 @@ public class Exchange {
 		subscribers.remove(name);
 	}	
 
-	public void route(final Serializable msg) {
+	public void route(final Object msg) {
 		for (final String name : subscribers) {
 			final ActorRef actorRef = Woody.getActorRef(name);
 

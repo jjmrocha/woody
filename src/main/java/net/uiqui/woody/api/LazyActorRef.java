@@ -17,14 +17,13 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
 import java.util.concurrent.Future;
 
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.Woody;
 import net.uiqui.woody.api.error.ActorNotFounfError;
 
-public class LazyActorRef extends AbsActorRef {
+public class LazyActorRef implements ActorRef {
 	private String name = null;
 	private ActorRef actor = null;
 	
@@ -32,17 +31,17 @@ public class LazyActorRef extends AbsActorRef {
 		this.name = name;
 	}
 
-	public void cast(final Serializable msg) {
+	public void cast(final Object msg) {
 		final ActorRef ref = getActorRef();
 		ref.cast(msg);
 	}
 
-	public Future<Serializable> call(final String operation, final Serializable payload) {
+	public Future<Object> call(final String operation, final Object payload) {
 		final ActorRef ref = getActorRef();
 		return ref.call(operation, payload);
 	}
 	
-	public Future<Serializable> call(final String operation) {
+	public Future<Object> call(final String operation) {
 		final ActorRef ref = getActorRef();
 		return ref.call(operation);
 	}	

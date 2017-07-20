@@ -35,11 +35,4 @@
       <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
     </repository>
   </distributionManagement>
-  <dependencies>
-  	<dependency>
-  		<groupId>org.jgroups</groupId>
-  		<artifactId>jgroups</artifactId>
-  		<version>4.0.2.Final</version>
-  	</dependency>
-  </dependencies>
 </project>
