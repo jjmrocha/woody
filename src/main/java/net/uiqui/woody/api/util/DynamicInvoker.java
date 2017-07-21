@@ -39,7 +39,8 @@ public class DynamicInvoker {
 	}
 	
 	public void addTypeInvoker(final String key, final Class<?> type, final Method method) {
-		methods.put(new KeyType(key, type), method);
+		final KeyType keyType = new KeyType(key, type);
+		methods.put(keyType, method);
 		method.setAccessible(true);
 	}
 
@@ -53,7 +54,7 @@ public class DynamicInvoker {
 				} else {
 					return method.invoke(target, param);
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + target.getClass().getName() + " with parameter of type " + param.getClass().getName(), e);
 			}
 		} else {
@@ -102,7 +103,7 @@ public class DynamicInvoker {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (obj == null) {
 				return false;
 			}

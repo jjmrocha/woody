@@ -42,7 +42,7 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public Future<Object> call(final String operation, final Object payload);
+	public <T> Future<T> call(final String operation, final Object payload);
 	
 	/**
 	 * Invokes asynchronously one of the methods marked with the CallHandler
@@ -51,7 +51,7 @@ public interface ActorRef {
 	 * @param operation name of the operation to invoke
 	 * @return the method's return value
 	 */
-	public Future<Object> call(final String operation);	
+	public <T> Future<T> call(final String operation);	
 	
 	/**
 	 * Invokes synchronously one of the methods marked with the CallHandler
@@ -61,12 +61,12 @@ public interface ActorRef {
 	 * @param payload call's argument
 	 * @return the method's return value
 	 */
-	public default Object syncCall(final String operation, final Object payload) {
-		final Future<Object> future = call(operation, payload); 
+	public default <T> T syncCall(final String operation, final Object payload) {
+		final Future<T> future = call(operation, payload); 
 		
 		try {
 			return future.get();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new WoodyException("Error calling operation " + operation, e);
 		}
 	}
@@ -78,12 +78,12 @@ public interface ActorRef {
 	 * @param operation name of the operation to invoke
 	 * @return the method's return value
 	 */
-	public default Object syncCall(final String operation) {
-		final Future<Object> future = call(operation); 
+	public default <T> T syncCall(final String operation) {
+		final Future<T> future = call(operation); 
 		
 		try {
 			return future.get();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new WoodyException("Error calling operation " + operation, e);
 		}
 	}		

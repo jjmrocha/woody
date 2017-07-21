@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.uiqui.woody.ActorRef;
 import net.uiqui.woody.api.msg.Call;
+import net.uiqui.woody.api.msg.Event;
 import net.uiqui.woody.api.util.Empty;
 import net.uiqui.woody.lib.Runner;
 
@@ -49,7 +50,13 @@ public class ActorMailbox implements ActorRef {
 								final Object msg = queue.poll();
 
 								if (msg != null) {
-									actor.onMessage(msg);
+									if (msg instanceof Call) {
+										actor.handleCall((Call) msg);
+									} else if (msg instanceof Event) {
+										actor.handleEvent((Event) msg);
+									} else {
+										actor.handleCast(msg);
+									}
 								}
 							} while (queue.size() > 0);
 						} finally {

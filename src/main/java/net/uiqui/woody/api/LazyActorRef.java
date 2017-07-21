@@ -59,7 +59,7 @@ public class LazyActorRef implements ActorRef {
 			return;
 		}
 		
-		actor = Woody.getActorRef(name);
+		actor = Woody.findActorRef(name);
 		
 		if (actor == null) {
 			throw new ActorNotFounfError("Actor " + name + " is not registered!");

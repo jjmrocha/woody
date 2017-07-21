@@ -59,7 +59,7 @@ public class FutureResult<T> implements Future<T> {
 		return report();
 	}
 
-	public T get(long timeout, TimeUnit unit) throws TimeoutException, InterruptedException, ExecutionException {
+	public T get(final long timeout, final TimeUnit unit) throws TimeoutException, InterruptedException, ExecutionException {
 		if (state >= STATE_DONE || clientParking.tryAcquire(timeout, TimeUnit.MILLISECONDS)) {
 			return report();
 		} else {

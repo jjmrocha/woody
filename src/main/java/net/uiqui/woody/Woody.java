@@ -81,7 +81,7 @@ public class Woody {
 
 			return actorGroup;
 		} else {
-			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
+			throw new AlreadyRegisteredException("The actorGroup name " + name + " is already registed");
 		}
 	}
 	
@@ -89,7 +89,7 @@ public class Woody {
 	 * Create and registers a new actor group
 	 * 
 	 * @param clazz the class for the actor creation
-	 * @param size the number of actor to create
+	 * @param size the number of actors to create
 	 * @return the new actor group
 	 */
 	public static ActorGroup newActorGroup(final Class<?> clazz, final int size) {
@@ -103,7 +103,7 @@ public class Woody {
 	 * 
 	 * @param name the name for the actor group registration
 	 * @param clazz the class for the actor creation
-	 * @param size the number of actor to create 
+	 * @param size the number of actors to create 
 	 * @return the new actor group
 	 */
 	public static ActorGroup newActorGroup(final String name, final Class<?> clazz, final int size) {
@@ -157,7 +157,7 @@ public class Woody {
 	 *            the name of the actor
 	 * @return the actor's reference
 	 */
-	public static ActorRef getActorRef(final String name) {
+	public static ActorRef findActorRef(final String name) {
 		return registry.findActor(name);
 	}
 	

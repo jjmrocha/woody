@@ -23,7 +23,7 @@ public class ActorFactory {
 	public static Object newActor(final Class<?> clazz) throws InvalidActorException {
 		try {
 			return clazz.newInstance();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new InvalidActorException("Error creating instance of " + clazz.getName(), e);
 		}
 	}

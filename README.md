@@ -160,7 +160,7 @@ Woody.newActor("a3", Actor3.class);
 //... somewhere else in our code ...
 
 // We can also obtain a reference to an actor
-ActorRef a3 = Woody.getActorRef("a3");
+ActorRef a3 = Woody.findActorRef("a3");
 
 Future<Object> currentValue = a3.call("increment", 1);
 

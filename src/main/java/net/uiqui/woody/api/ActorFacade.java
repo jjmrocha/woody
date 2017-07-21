@@ -17,7 +17,6 @@
  */
 package net.uiqui.woody.api;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -68,7 +67,7 @@ public class ActorFacade extends DynamicInvoker {
 		}
 
 		try {
-			for (Field field : actor.getClass().getDeclaredFields()) {
+			for (final Field field : actor.getClass().getDeclaredFields()) {
 				final Class<?> type = field.getType();
 				
 				final Self self = field.getAnnotation(Self.class);
@@ -86,7 +85,7 @@ public class ActorFacade extends DynamicInvoker {
 					field.set(actor, new LazyActorRef(actorRef.value()));
 				}
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			throw new RuntimeException("Error accessing actor fields", e);
 		}
 	}
@@ -94,27 +93,21 @@ public class ActorFacade extends DynamicInvoker {
 	public boolean isSearchable() {
 		return searchable;
 	}
-
-	public void onMessage(final Object msg) {
-		if (msg instanceof Call) {
-			handleCall((Call) msg);
-		} else if (msg instanceof Event) {
-			onEvent((Event) msg);
-		} else {
-			invoke(msg);
-		}
-	}
-
-	private void onEvent(final Event event) {
+	
+	public void handleEvent(final Event event) {
 		invoke(event.getTopic(), event.getPayload());
 	}
+	
+	public void handleCast(final Object msg) {
+		invoke(msg);
+	}
 
-	private void handleCall(final Call request) {
+	public void handleCall(final Call request) {
 		if (request.tryRun()) {
 			try {
-				final Serializable reply = (Serializable) invoke(request.getOperation(), request.getPayload());
+				final Object reply = invoke(request.getOperation(), request.getPayload());
 				request.setResult(reply);
-			} catch (Throwable cause) {
+			} catch (final Throwable cause) {
 				request.setException(cause);
 			}
 		}

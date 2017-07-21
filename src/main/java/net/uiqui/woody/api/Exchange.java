@@ -42,7 +42,7 @@ public class Exchange {
 
 	public void route(final Object msg) {
 		for (final String name : subscribers) {
-			final ActorRef actorRef = Woody.getActorRef(name);
+			final ActorRef actorRef = Woody.findActorRef(name);
 
 			if (actorRef != null) {
 				actorRef.cast(msg);

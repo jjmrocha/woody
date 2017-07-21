@@ -63,7 +63,7 @@ public class Scheduler {
 	 * @return the scheduled future
 	 */
 	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Serializable msg) {
-		final ActorRef actorRef = Woody.getActorRef(name);
+		final ActorRef actorRef = Woody.findActorRef(name);
 		
 		return scheduleAfter(delay, new Runnable() {
 			public void run() {
@@ -81,7 +81,7 @@ public class Scheduler {
 	 * @return the scheduled future
 	 */
 	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Serializable msg) {
-		final ActorRef actorRef = Woody.getActorRef(name);
+		final ActorRef actorRef = Woody.findActorRef(name);
 		
 		return scheduleInterval(interval, new Runnable() {
 			public void run() {
