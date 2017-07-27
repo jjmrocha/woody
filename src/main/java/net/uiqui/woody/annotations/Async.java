@@ -24,10 +24,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The CallHandler annotation is use mark methods that support RPC calls 
+ * The Async annotation is use to mark method that can receive asynchronous messages
  */
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface CallHandler {
-	String value();
+public @interface Async {
 }

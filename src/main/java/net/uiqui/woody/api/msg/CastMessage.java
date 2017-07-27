@@ -17,20 +17,20 @@
  */
 package net.uiqui.woody.api.msg;
 
-public class Event {
-	private String topic = null;
-	private Object payload = null;
+public class CastMessage {
+	private Integer method = null;
+	private Object[] args = null;
 	
-	public Event(final String topic, final Object payload) {
-		this.topic = topic;
-		this.payload = payload;
+	public CastMessage(final Integer method, final Object[] args) {
+		this.method = method;
+		this.args = args;
 	}
 
-	public String getTopic() {
-		return topic;
+	public Integer getMethod() {
+		return method;
 	}
 
-	public Object getPayload() {
-		return payload;
+	public Object[] getArgs() {
+		return args;
 	}
 }

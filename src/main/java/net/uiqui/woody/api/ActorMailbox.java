@@ -18,31 +18,28 @@
 package net.uiqui.woody.api;
 
 import java.util.Queue;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import net.uiqui.woody.ActorRef;
-import net.uiqui.woody.api.msg.Call;
-import net.uiqui.woody.api.msg.Event;
-import net.uiqui.woody.api.util.Empty;
+import net.uiqui.woody.api.msg.CallMessage;
+import net.uiqui.woody.api.msg.CastMessage;
 import net.uiqui.woody.lib.Runner;
 
-public class ActorMailbox implements ActorRef {
+public class ActorMailbox {
 	private final Queue<Object> queue = new LinkedBlockingQueue<Object>();
 	private final AtomicBoolean running = new AtomicBoolean(false);
 	
-	private ActorFacade actor = null;
+	private ActorWrapper actor = null;
 
-	public ActorMailbox(final ActorFacade actor) {
+	public ActorMailbox(final ActorWrapper actor) {
 		this.actor = actor;
 	}
 
-	public void cast(final Object msg) {
+	public void push(final Object msg) {
 		queue.offer(msg);
 
 		if (tryToRun()) {
-			Runner.spawn(new Runnable() {
+			Runner.run(new Runnable() {
 				public void run() {
 					do {
 						try {
@@ -50,12 +47,10 @@ public class ActorMailbox implements ActorRef {
 								final Object msg = queue.poll();
 
 								if (msg != null) {
-									if (msg instanceof Call) {
-										actor.handleCall((Call) msg);
-									} else if (msg instanceof Event) {
-										actor.handleEvent((Event) msg);
-									} else {
-										actor.handleCast(msg);
+									if (msg instanceof CastMessage) {
+										actor.handleCast((CastMessage) msg);									
+									} else if (msg instanceof CallMessage) {
+										actor.handleCall((CallMessage) msg);
 									}
 								}
 							} while (queue.size() > 0);
@@ -70,15 +65,5 @@ public class ActorMailbox implements ActorRef {
 
 	private boolean tryToRun() {
 		return running.compareAndSet(false, true);
-	}
-
-	public Future<Object> call(final String operation, final Object payload) {
-		final Call request = new Call(operation, payload);
-		cast(request);
-		return request;
-	}
-	
-	public Future<Object> call(final String operation) {
-		return call(operation, Empty.VALUE);
 	}
 }

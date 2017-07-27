@@ -15,19 +15,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.annotations;
+package net.uiqui.woody.api.clib;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import net.sf.cglib.proxy.LazyLoader;
+import net.uiqui.woody.Woody;
+import net.uiqui.woody.api.error.ActorNotFounfError;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+public class LazyActor implements LazyLoader {
+	private String name = null;
+	
+	public LazyActor(final String name) {
+		this.name = name;
+	}
 
-/**
- * The Subscription annotation is use to mark method that can receive event messages from a topic
- */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface Subscription {
-	String value();
+	@Override
+	public Object loadObject() throws Exception {
+		final Object actor = Woody.findActor(name);
+		
+		if (actor == null) {
+			throw new ActorNotFounfError("Actor " + name + " is not registered!");
+		}
+		
+		return actor;
+	}
 }

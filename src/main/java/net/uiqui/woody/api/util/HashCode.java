@@ -15,24 +15,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.msg;
+package net.uiqui.woody.api.util;
 
-import net.uiqui.woody.api.util.FutureResult;
+import java.lang.reflect.Method;
 
-public class Call extends FutureResult<Object> {
-	private String operation = null;
-	private Object payload = null;
-
-	public Call(final String operation, final Object payload) {
-		this.operation = operation;
-		this.payload = payload;
-	}
-	
-	public String getOperation() {
-		return operation;
-	}
-
-	public Object getPayload() {
-		return payload;
+public class HashCode {
+	public static Integer get(final Method method) {
+		if (method == null) {
+			return null;
+		}
+		
+		return method.toString().hashCode();
 	}
 }

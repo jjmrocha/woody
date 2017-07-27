@@ -17,12 +17,10 @@
  */
 package net.uiqui.woody;
 
-import net.uiqui.woody.api.Exchange;
+import net.uiqui.woody.api.ActorFactory;
 import net.uiqui.woody.api.Registry;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
-import net.uiqui.woody.api.msg.Event;
-import net.uiqui.woody.lib.ActorFactory;
-import net.uiqui.woody.lib.Runner;
+import net.uiqui.woody.lib.NameFactory;
 
 /**
  * The Class Woody is responsible for the main features, mainly: Actor and topic
@@ -39,9 +37,14 @@ public class Woody {
 	 *            actor's class
 	 * @return the reference for the actor
 	 */
-	public static ActorRef newActor(final Class<?> clazz) {
-		final Object actor = ActorFactory.newActor(clazz);
-		return register(actor);
+	@SuppressWarnings("unchecked")
+	public static <T> T newActor(final Class<T> clazz) {
+		if (ActorFactory.isSearchable(clazz)) {
+			final String name = NameFactory.get();
+			return (T) newActor(name, clazz);
+		}
+		
+		return (T) ActorFactory.newActor(clazz);
 	}
 
 	/**
@@ -54,63 +57,12 @@ public class Woody {
 	 *            actor's class
 	 * @return the reference for the actor
 	 */
-	public static ActorRef newActor(final String name, final Class<?> clazz) {
-		final Object actor = ActorFactory.newActor(clazz);
-		return register(name, actor);
+	@SuppressWarnings("unchecked")
+	public static <T> T newActor(final String name, final Class<T> clazz) {
+		final Object actor = ActorFactory.newActor(name, clazz);
+		registerActor(name, actor);
+		return (T) actor;
 	}
-
-	/**
-	 * Create and registers a new actor group
-	 * 
-	 * @return the new actor group
-	 */
-	public static ActorGroup newActorGroup() {
-		return new ActorGroup();
-	}
-
-	/**
-	 * Create a new actor group
-	 * 
-	 * @param name the name for the actor group registration
-	 * @return the new actor group
-	 */
-	public static ActorGroup newActorGroup(final String name) {
-		if (!registry.isRegistered(name)) {
-			final ActorGroup actorGroup = newActorGroup();
-			registry.registerActor(name, actorGroup);
-
-			return actorGroup;
-		} else {
-			throw new AlreadyRegisteredException("The actorGroup name " + name + " is already registed");
-		}
-	}
-	
-	/**
-	 * Create and registers a new actor group
-	 * 
-	 * @param clazz the class for the actor creation
-	 * @param size the number of actors to create
-	 * @return the new actor group
-	 */
-	public static ActorGroup newActorGroup(final Class<?> clazz, final int size) {
-		final ActorGroup actorGroup = newActorGroup();
-		actorGroup.addMembers(clazz, size);
-		return actorGroup;
-	}
-
-	/**
-	 * Create a new actor group
-	 * 
-	 * @param name the name for the actor group registration
-	 * @param clazz the class for the actor creation
-	 * @param size the number of actors to create 
-	 * @return the new actor group
-	 */
-	public static ActorGroup newActorGroup(final String name, final Class<?> clazz, final int size) {
-		final ActorGroup actorGroup = newActorGroup(name);
-		actorGroup.addMembers(clazz, size);
-		return actorGroup;
-	}	
 
 	/**
 	 * Register one object as an actor
@@ -119,8 +71,14 @@ public class Woody {
 	 *            the actor instance
 	 * @return the reference for the actor
 	 */
-	public static ActorRef register(final Object actor) {
-		return registry.register(actor);
+	@SuppressWarnings("unchecked")
+	public static <T> T register(final Object obj) {
+		if (ActorFactory.isSearchable(obj)) {
+			final String name = NameFactory.get();
+			return (T) register(name, obj);
+		}
+		
+		return (T) ActorFactory.newActor(obj);
 	}
 
 	/**
@@ -132,12 +90,19 @@ public class Woody {
 	 *            the actor instance
 	 * @return the reference for the actor
 	 */
-	public static ActorRef register(final String name, final Object actor) {
-		if (!registry.isRegistered(name)) {
-			return registry.register(name, actor);
-		} else {
+	@SuppressWarnings("unchecked")
+	public static <T> T register(final String name, final Object obj) {
+		final Object actor = ActorFactory.newActor(name, obj);
+		registerActor(name, actor);
+		return (T) actor;
+	}
+	
+	private static void registerActor(final String name, final Object actor) {
+		if (registry.isRegistered(name)) {
 			throw new AlreadyRegisteredException("The actor " + name + " is already registed");
 		}
+		
+		registry.register(name, actor);
 	}
 
 	/**
@@ -157,31 +122,8 @@ public class Woody {
 	 *            the name of the actor
 	 * @return the actor's reference
 	 */
-	public static ActorRef findActorRef(final String name) {
-		return registry.findActor(name);
+	@SuppressWarnings("unchecked")
+	public static <T> T findActor(final String name) {
+		return (T) registry.findActor(name);
 	}
-	
-	/**
-	 * Publish a event to a topic, all actors subscribing the topic will receive
-	 * the message (an actor subscribes a topic, by annotating a method with the
-	 * Subscription annotation)
-	 *
-	 * @param topic
-	 *            the topic's name
-	 * @param payload
-	 *            the event to deliver to all subscribers
-	 */
-	public static void publish(final String topic, final Object payload) {
-		final Event event = new Event(topic, payload);
-		
-		Runner.queue(new Runnable() {
-			public void run() {
-				final Exchange exchange = registry.findTopic(event.getTopic());
-
-				if (exchange != null) {
-					exchange.route(event);
-				}
-			}
-		});
-	}	
 }

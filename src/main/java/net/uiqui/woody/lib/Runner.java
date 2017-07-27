@@ -55,7 +55,7 @@ public class Runner {
 	 * @param command
 	 *            the command to execute
 	 */
-	public static void spawn(final Runnable command) {
+	public static void run(final Runnable command) {
 		THREAD_POOL.execute(command);
 	}
 
@@ -65,7 +65,7 @@ public class Runner {
 	 * @param command
 	 *            the command to execute
 	 */
-	public static void run(final Runnable command) {
+	public static void start(final Runnable command) {
 		final Thread thread = THREAD_FACTORY.newThread(command);
 		thread.start();
 	}

@@ -15,15 +15,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.util;
+package net.uiqui.woody.api.msg;
 
-import java.io.Serializable;
+import net.uiqui.woody.api.util.FutureResult;
 
-public final class Empty implements Serializable {
-	private static final long serialVersionUID = 7984162710744368195L;
+public class CallMessage extends FutureResult<Object> {
+	private Integer method = null;
+	private Object[] args = null;
+	
+	public CallMessage(final Integer method, final Object[] args) {
+		this.method = method;
+		this.args = args;
+	}
 
-	public static final Empty VALUE = new Empty();
+	public Integer getMethod() {
+		return method;
+	}
 
-	private Empty() {
+	public Object[] getArgs() {
+		return args;
 	}
 }

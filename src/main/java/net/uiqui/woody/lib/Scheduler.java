@@ -17,14 +17,10 @@
  */
 package net.uiqui.woody.lib;
 
-import java.io.Serializable;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import net.uiqui.woody.ActorRef;
-import net.uiqui.woody.Woody;
 
 /**
  * Runs a scheduler for execution of tasks and sending messages 
@@ -53,40 +49,5 @@ public class Scheduler {
 	public static ScheduledFuture<?> scheduleInterval(final long interval, final Runnable command) {
 		return EXECUTOR_SERVICE.scheduleAtFixedRate(command, interval, interval, TimeUnit.MILLISECONDS);
 	}
-	
-	/**
-	 * Send a message to an actor after a specific delay in milliseconds.
-	 *
-	 * @param delay the delay in milliseconds
-	 * @param name the actor's name
-	 * @param msg the message to send
-	 * @return the scheduled future
-	 */
-	public static ScheduledFuture<?> sendAfter(final long delay, final String name, final Serializable msg) {
-		final ActorRef actorRef = Woody.findActorRef(name);
-		
-		return scheduleAfter(delay, new Runnable() {
-			public void run() {
-				actorRef.cast(msg);
-			}
-		});
-	}
-	
-	/**
-	 * Send a periodic message to an actor.
-	 *
-	 * @param interval the interval in milliseconds
-	 * @param name the actor's name
-	 * @param msg the message to send
-	 * @return the scheduled future
-	 */
-	public static ScheduledFuture<?> sendInterval(final long interval, final String name, final Serializable msg) {
-		final ActorRef actorRef = Woody.findActorRef(name);
-		
-		return scheduleInterval(interval, new Runnable() {
-			public void run() {
-				actorRef.cast(msg);
-			}
-		});
-	}
+
 }

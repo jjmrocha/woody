@@ -15,18 +15,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.annotations;
+package net.uiqui.woody.api.error;
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+public class NotAvailableException extends WoodyException {
+	private static final long serialVersionUID = 5101601913580065353L;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+	public NotAvailableException(final String message) {
+		super(message);
+	}
 
-/**
- * The CastHandler annotation is use to mark method that can receive asynchronous messages
- */
-@Retention(RUNTIME)
-@Target(METHOD)
-public @interface CastHandler {
 }

@@ -21,7 +21,7 @@ public class Ring<T> {
 	private Node<T> pointer = null;
 	private Node<T> first = null;
 	private Node<T> last = null;
-	
+
 	public synchronized void add(final T value) {
 		if (pointer == null) {
 			pointer = new Node<T>(value, null);
@@ -34,16 +34,16 @@ public class Ring<T> {
 			previousLast.next = last;
 		}
 	}
-	
+
 	public synchronized T next() {
 		if (pointer == null) {
 			return null;
 		}
-		
+
 		pointer = pointer.next;
 		return pointer.value;
 	}
-	
+
 	private static class Node<E> {
 		public final E value;
 		public Node<E> next;
@@ -52,5 +52,5 @@ public class Ring<T> {
 			this.value = value;
 			this.next = next;
 		}
-}
+	}
 }

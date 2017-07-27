@@ -17,46 +17,15 @@
  */
 package net.uiqui.woody.api;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.uiqui.woody.ActorRef;
-import net.uiqui.woody.annotations.CallHandler;
-import net.uiqui.woody.annotations.CastHandler;
-import net.uiqui.woody.annotations.Subscription;
-import net.uiqui.woody.api.error.InvalidActorException;
-import net.uiqui.woody.lib.NameFactory;
-
 public class Registry {
-	private final ConcurrentHashMap<String, ActorRef> mailboxes = new ConcurrentHashMap<String, ActorRef>();
-	private final ConcurrentHashMap<String, Exchange> topics = new ConcurrentHashMap<String, Exchange>();
+	private final ConcurrentHashMap<String, Object> mailboxes = new ConcurrentHashMap<String, Object>();
 	
-	public ActorRef register(final String name, final Object actor) {
-		return register(name, true, actor);
+	public void register(final String name, final Object actor) {
+		mailboxes.putIfAbsent(name, actor);
 	}
-	
-	public ActorRef register(final Object actor) {
-		final String name = NameFactory.get();
-		return register(name, false, actor);
-	}
-	
-	private ActorRef register(final String name, final boolean register, final Object actor) {
-		if (isValidActor(actor)) {
-			final ActorFacade facade = new ActorFacade(name, actor);
-			final ActorRef actorRef = new ActorMailbox(facade);
 
-			if (register || facade.isSearchable()) {
-				registerActor(name, actorRef);
-			}
-
-			registerSubscriptions(name, actor);
-
-			return actorRef;
-		} else {
-			throw new InvalidActorException("Class " + actor.getClass().getName() + " is not a valid actor");
-		}
-	}
-	
 	public void unregister(final String name) {
 		mailboxes.remove(name);
 	}
@@ -65,65 +34,7 @@ public class Registry {
 		return mailboxes.containsKey(name);
 	}
 	
-	public ActorRef findActor(final String name) {
+	public Object findActor(final String name) {
 		return mailboxes.get(name);
 	}
-	
-	public Exchange findTopic(final String name) {
-		return topics.get(name);
-	}
-
-	public void registerActor(final String name, final ActorRef actorRef) {
-		mailboxes.putIfAbsent(name, actorRef);
-	}
-
-	private boolean isValidActor(final Object actor) {
-		for (final Method method : actor.getClass().getMethods()) {
-			if (method.getParameterTypes().length == 1) {
-				final CastHandler cast = method.getAnnotation(CastHandler.class);
-
-				if (cast != null) {
-					return true;
-				}
-
-				final Subscription subscription = method.getAnnotation(Subscription.class);
-
-				if (subscription != null && subscription.value() != null) {
-					return true;
-				}
-
-				final CallHandler call = method.getAnnotation(CallHandler.class);
-
-				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
-					return true;
-				}
-			} else if (method.getParameterTypes().length == 0) {
-				final CallHandler call = method.getAnnotation(CallHandler.class);
-
-				if (call != null && call.value() != null && method.getReturnType() != Void.class) {
-					return true;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	private void registerSubscriptions(final String name, final Object actor) {
-		for (final Method method : actor.getClass().getMethods()) {
-			final Subscription subscription = method.getAnnotation(Subscription.class);
-
-			if (subscription != null && subscription.value() != null && method.getParameterTypes().length == 1) {
-				subscribe(subscription.value(), name);
-			}
-		}
-	}
-	
-	private void subscribe(final String topic, final String actorName) {
-		final Exchange exchange = topics.putIfAbsent(topic, new Exchange(actorName));
-
-		if (exchange != null) {
-			exchange.bind(actorName);
-		}
-	}	
 }
