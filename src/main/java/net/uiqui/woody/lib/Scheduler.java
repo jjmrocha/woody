@@ -22,30 +22,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Runs a scheduler for execution of tasks and sending messages 
- */
 public class Scheduler {
 	private static final ScheduledExecutorService EXECUTOR_SERVICE = new ScheduledThreadPoolExecutor(1, Runner.THREAD_FACTORY);
-	
-	/**
-	 * Schedule a task for execution after specific delay in milliseconds.
-	 *
-	 * @param delay the delay in milliseconds
-	 * @param command the command
-	 * @return the scheduled future
-	 */
+
 	public static ScheduledFuture<?> scheduleAfter(final long delay, final Runnable command) {
 		return EXECUTOR_SERVICE.schedule(command, delay, TimeUnit.MILLISECONDS);
 	}
-	
-	/**
-	 * Schedule a task for periodic execution
-	 *
-	 * @param interval the execution interval in milliseconds
-	 * @param command the command
-	 * @return the scheduled future
-	 */
+
 	public static ScheduledFuture<?> scheduleInterval(final long interval, final Runnable command) {
 		return EXECUTOR_SERVICE.scheduleAtFixedRate(command, interval, interval, TimeUnit.MILLISECONDS);
 	}

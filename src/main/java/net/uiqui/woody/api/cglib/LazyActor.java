@@ -15,26 +15,27 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.lib;
+package net.uiqui.woody.api.cglib;
 
-import java.security.SecureRandom;
+import net.sf.cglib.proxy.LazyLoader;
+import net.uiqui.woody.Woody;
+import net.uiqui.woody.api.error.ActorNotFounfError;
 
-public class NameFactory {
-	private static final SecureRandom numberGenerator = new SecureRandom();
+public class LazyActor implements LazyLoader {
+	private String name = null;
+	
+	public LazyActor(final String name) {
+		this.name = name;
+	}
 
-	public static String get() {
-		final StringBuilder builder = new StringBuilder();
+	@Override
+	public Object loadObject() throws Exception {
+		final Object actor = Woody.findActor(name);
 		
-		for (int i = 0; i < 4; i++) {
-			final int randInt = numberGenerator.nextInt();
-			
-			if (i > 0) {
-				builder.append("-");
-			}
-			
-			builder.append(Integer.toHexString(randInt));
+		if (actor == null) {
+			throw new ActorNotFounfError("Actor " + name + " is not registered!");
 		}
-
-		return builder.toString();
+		
+		return actor;
 	}
 }

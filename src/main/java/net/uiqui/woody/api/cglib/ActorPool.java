@@ -15,27 +15,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package net.uiqui.woody.api.clib;
+package net.uiqui.woody.api.cglib;
 
-import net.sf.cglib.proxy.LazyLoader;
-import net.uiqui.woody.Woody;
-import net.uiqui.woody.api.error.ActorNotFounfError;
+import net.sf.cglib.proxy.Dispatcher;
+import net.uiqui.woody.api.util.Ring;
 
-public class LazyActor implements LazyLoader {
-	private String name = null;
+public class ActorPool implements Dispatcher {
+	private Ring<Object> pool = null;
 	
-	public LazyActor(final String name) {
-		this.name = name;
+	public ActorPool(final Ring<Object> pool) {
+		this.pool = pool;
 	}
-
+	
 	@Override
 	public Object loadObject() throws Exception {
-		final Object actor = Woody.findActor(name);
-		
-		if (actor == null) {
-			throw new ActorNotFounfError("Actor " + name + " is not registered!");
-		}
-		
-		return actor;
+		return pool.next();
 	}
 }

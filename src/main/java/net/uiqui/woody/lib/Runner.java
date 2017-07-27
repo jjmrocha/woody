@@ -25,16 +25,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * This class is responsible for execution of tasks using thread pools
- * 
- * The behavior of this class can be customized using the system properties:
- * 
- * <pre>
- * woody.use.daemon.threads The threads used by Woody are all daemon? (default value is true)
- * woody.max.pool.size      Max number of threads to allow on the pool (default value is 50 threads for each processor core)
- * </pre>
- */
 public class Runner {
 	private static final boolean USE_DAEMON_THREADS = useDeamonThreads();
 
@@ -49,58 +39,26 @@ public class Runner {
 	private static final Executor THREAD_POOL = newThreadPoolExecutor();
 	private static final Executor THREAD_QUEUE = Executors.newSingleThreadExecutor(THREAD_FACTORY);
 
-	/**
-	 * Executes a task using a CachedThreadPool
-	 *
-	 * @param command
-	 *            the command to execute
-	 */
 	public static void run(final Runnable command) {
 		THREAD_POOL.execute(command);
 	}
 
-	/**
-	 * Run a that in a new tread
-	 *
-	 * @param command
-	 *            the command to execute
-	 */
 	public static void start(final Runnable command) {
 		final Thread thread = THREAD_FACTORY.newThread(command);
 		thread.start();
 	}
 
-	/**
-	 * Executes a task using a SingleThreadExecutor
-	 *
-	 * @param command
-	 *            the command to execute
-	 */
 	public static void queue(final Runnable command) {
 		THREAD_QUEUE.execute(command);
 	}
 
-	/**
-	 * Causes the currently executing thread to sleep
-	 *
-	 * @param delay
-	 *            the sleep period
-	 * @param unit
-	 *            the time unit of the delay argument
-	 */
 	public static void sleep(final long delay, final TimeUnit unit) {
 		try {
 			Thread.sleep(unit.toMillis(delay));
 		} catch (InterruptedException e) {
 		}
 	}
-	
-	/**
-	 * Causes the currently executing thread to sleep
-	 *
-	 * @param delay
-	 *            the sleep period in milliseconds
-	 */
+
 	public static void sleep(final long delay) {
 		sleep(delay, TimeUnit.MILLISECONDS);
 	}	

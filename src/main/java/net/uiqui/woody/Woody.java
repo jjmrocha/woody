@@ -22,21 +22,9 @@ import net.uiqui.woody.api.Registry;
 import net.uiqui.woody.api.error.AlreadyRegisteredException;
 import net.uiqui.woody.lib.NameFactory;
 
-/**
- * The Class Woody is responsible for the main features, mainly: Actor and topic
- * registration/subscription and support for sending messages, publish events
- * and perform rpc calls
- */
 public class Woody {
 	private static final Registry registry = new Registry();
 
-	/**
-	 * Creates a new instance of an actor
-	 * 
-	 * @param clazz
-	 *            actor's class
-	 * @return the reference for the actor
-	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T newActor(final Class<T> clazz) {
 		if (ActorFactory.isSearchable(clazz)) {
@@ -46,55 +34,43 @@ public class Woody {
 		
 		return (T) ActorFactory.newActor(clazz);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T newActor(final Class<T> clazz, final int poolSize) {
+		if (ActorFactory.isSearchable(clazz)) {
+			final String name = NameFactory.get();
+			return (T) newActor(name, clazz, poolSize);
+		}
+		
+		return (T) ActorFactory.newActor(clazz, poolSize);
+	}	
 
-	/**
-	 * Creates a new instance of an actor, and register the instance with the
-	 * supplied name
-	 * 
-	 * @param name
-	 *            the actor's name
-	 * @param clazz
-	 *            actor's class
-	 * @return the reference for the actor
-	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T newActor(final String name, final Class<T> clazz) {
 		final Object actor = ActorFactory.newActor(name, clazz);
 		registerActor(name, actor);
 		return (T) actor;
 	}
-
-	/**
-	 * Register one object as an actor
-	 *
-	 * @param actor
-	 *            the actor instance
-	 * @return the reference for the actor
-	 */
+	
 	@SuppressWarnings("unchecked")
-	public static <T> T register(final Object obj) {
-		if (ActorFactory.isSearchable(obj)) {
-			final String name = NameFactory.get();
-			return (T) register(name, obj);
-		}
-		
-		return (T) ActorFactory.newActor(obj);
-	}
-
-	/**
-	 * Register one object as an actor
-	 *
-	 * @param name
-	 *            the actor's name
-	 * @param actor
-	 *            the actor instance
-	 * @return the reference for the actor
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T register(final String name, final Object obj) {
-		final Object actor = ActorFactory.newActor(name, obj);
+	public static <T> T newActor(final String name, final Class<T> clazz, final int poolSize) {
+		final Object actor = ActorFactory.newActor(name, clazz, poolSize);
 		registerActor(name, actor);
 		return (T) actor;
+	}	
+
+	public static void register(final Object obj) {
+		if (ActorFactory.isSearchable(obj)) {
+			final String name = NameFactory.get();
+			register(name, obj);
+		}
+		
+		ActorFactory.newActor(obj);
+	}
+	
+	public static void register(final String name, final Object obj) {
+		final Object actor = ActorFactory.newActor(name, obj);
+		registerActor(name, actor);
 	}
 	
 	private static void registerActor(final String name, final Object actor) {
@@ -105,23 +81,10 @@ public class Woody {
 		registry.register(name, actor);
 	}
 
-	/**
-	 * Unregister the actor
-	 *
-	 * @param name
-	 *            the actor's name
-	 */
 	public static void unregister(final String name) {
 		registry.unregister(name);
 	}
 
-	/**
-	 * Return a reference for the actor
-	 *
-	 * @param name
-	 *            the name of the actor
-	 * @return the actor's reference
-	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T findActor(final String name) {
 		return (T) registry.findActor(name);

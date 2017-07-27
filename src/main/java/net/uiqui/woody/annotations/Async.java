@@ -23,9 +23,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * The Async annotation is use to mark method that can receive asynchronous messages
- */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface Async {

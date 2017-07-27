@@ -18,6 +18,7 @@
 package net.uiqui.woody.api.util;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class HashCode {
 	public static Integer get(final Method method) {
@@ -25,6 +26,10 @@ public class HashCode {
 			return null;
 		}
 		
-		return method.toString().hashCode();
+		int hashCode = 1;
+		hashCode = 31 * hashCode + method.getDeclaringClass().getName().hashCode();
+		hashCode = 31 * hashCode + method.getName().hashCode();
+		hashCode = 31 * hashCode + Arrays.hashCode(method.getParameterTypes());
+		return hashCode;
 	}
 }

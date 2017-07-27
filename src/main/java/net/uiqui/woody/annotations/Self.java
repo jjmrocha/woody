@@ -23,9 +23,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * The Self annotation is used to request the actor's name injection on the associated field
- */
 @Retention(RUNTIME)
 @Target(FIELD)
 public @interface Self {

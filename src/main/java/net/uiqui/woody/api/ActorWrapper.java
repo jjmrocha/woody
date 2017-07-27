@@ -90,10 +90,10 @@ public class ActorWrapper {
 			try {
 				return method.invoke(target, args);
 			} catch (final Exception e) {
-				throw new RuntimeException("Error invoking method " + method.getName() + " on class " + target.getClass().getName(), e);
+				throw new RuntimeException("Error invoking method '" + method.toString() + "' on class '" + target.getClass().getName() + "'", e);
 			}
 		} else {
-			throw new RuntimeException("Method not found on class " + target.getClass().getName() + " with hashCode " + methodHashCode);
+			throw new RuntimeException("Method not found on class '" + target.getClass().getName() + "' with hashCode " + methodHashCode);
 		}
 	}
 }

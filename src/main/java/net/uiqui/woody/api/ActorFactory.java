@@ -23,9 +23,11 @@ import java.lang.reflect.Method;
 import net.sf.cglib.proxy.Enhancer;
 import net.uiqui.woody.annotations.Async;
 import net.uiqui.woody.annotations.Self;
-import net.uiqui.woody.api.clib.ActorProxy;
-import net.uiqui.woody.api.clib.LazyActor;
+import net.uiqui.woody.api.cglib.ActorPool;
+import net.uiqui.woody.api.cglib.ActorProxy;
+import net.uiqui.woody.api.cglib.LazyActor;
 import net.uiqui.woody.api.error.InvalidActorException;
+import net.uiqui.woody.api.util.Ring;
 
 public class ActorFactory {
 	public static Object newActor(final String name, final Object obj) {
@@ -60,6 +62,25 @@ public class ActorFactory {
 		} catch (final Exception e) {
 			throw new InvalidActorException("Error creating instance of " + type.getName(), e);
 		}
+	}
+	
+	public static Object newActor(final Class<?> type, final int poolSize) throws InvalidActorException {
+		return newActor(null, type, poolSize);
+	}
+	
+	public static Object newActor(final String name, final Class<?> type, final int poolSize) throws InvalidActorException {
+		final Ring<Object> pool = new Ring<Object>();
+		
+		for (int i = 0; i < poolSize; i++) {
+			final Object actor = newActor(name, type);
+			pool.add(actor);
+		}
+		
+		final ActorPool actorPool = new ActorPool(pool);
+		final Enhancer enhancer = new Enhancer();
+		enhancer.setSuperclass(type);
+		enhancer.setCallback(actorPool);
+		return enhancer.create();
 	}
 	
 	public static Object newLazyActor(final String name, final Class<?> type) {
