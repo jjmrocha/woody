@@ -1,8 +1,3 @@
-**DEPRECATED**
-
-*Use kontraktor from [RuedigerMoeller/kontraktor](https://github.com/RuedigerMoeller/kontraktor) instead*
-
-===============
 
 # WOODY 
 
