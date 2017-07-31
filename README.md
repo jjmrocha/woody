@@ -1,3 +1,9 @@
+**DEPRECATED**
+
+*Use kontraktor from [RuedigerMoeller/kontraktor](https://github.com/RuedigerMoeller/kontraktor) instead*
+
+===============
+
 # WOODY 
 
 *Woody is a basic implementation of the actor model in JAVA*
