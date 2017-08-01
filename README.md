@@ -1,4 +1,3 @@
-
 # WOODY 
 
 *Woody is a basic implementation of the actor model in JAVA*
@@ -33,7 +32,7 @@ Maven dependency:
 <dependency>
     <groupId>net.uiqui</groupId>
     <artifactId>woody</artifactId>
-    <version>2.3.0</version>
+    <version>2.4.0</version>
 </dependency>
 ```
 
@@ -42,142 +41,103 @@ Maven dependency:
 
 ### Actor
 
-Any class can be used as an actor, the only requirement is to use one of the annotations **CastHandler**, **CallHandler** or **Subscription** on one of its methods.
-
-To be able to receive messages asynchronously the actor must use the **CastHandler** annotation to mark the method to process the message. 
-The actor must implement different methods for each type of message it can receive, e.g. If the actor can receive string and integer messages, it must provide two methods:
+Any class can be used as an actor, the only requirement the use one of the annotation **Async** on one of its methods.
 
 ```java
-@CastHandler
-public void handleString(String msg) {
-	System.out.println("Received STR: " + msg);
-}
-
-@CastHandler
-public void handleInt(Integer msg) {
-	System.out.println("Received INT: " + msg);
-}
-```
-
-**NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive a message of an unsupported data type.**
-
-```java
-public class Actor1 {
-	// Self annotation, can be used to obtain the actor's name on runtime
-	@Self
-	private String name = null;
+public class Storage {
+	private final Map<String, Object> keyMap = new HashMap<String, Object>();
 	
-	@CastHandler
-	public void handleCast(String msg) {
-		System.out.println("[" + name + "] Received: " + msg);
+	@Self private String name = null;
+	
+	@Async
+	public void put(final String key, final Object value) {
+		debug("put(" + key + ", " + value + ")");
+		keyMap.put(key, value);
+	}
+	
+	@Async
+	public Object get(final String key) {
+		debug("get(" + key + ")");
+		return keyMap.get(key);
+	}
+	
+	@Async
+	public void delete(final String key) {
+		debug("delete(" + key + ")");
+		keyMap.remove(key);
+	}
+
+	private void debug(final String msg) {
+		System.out.println("[" + name + "] " + msg);
 	}
 }
-
-// Register actor
-ActorRef a1 = Woody.register("a1", new Actor1());
-
-// Send a message to actor
-a1.cast("Hello actor!");
 ```
 
+All methods marked with the **Async** annotation will be invoked asynchronously.
+The annotation **Self** injects the actor name on the annotated field.
+ 
 
-### Topic
-Topics can be used to deliver events to many actors (subscribers of the topic).
+### Actor creation and registration
 
-To be able to receive events asynchronously the actor must subscribe one or more topics using the **Subscription** annotation to mark the method to process the event. 
-The actor must implement different methods for each type of event:
+Woody provides methods to create actor instances and register already created objects as actors.
 
 ```java
-@Subscription("ping")
-public void ping(Integer msg) {
-	System.out.println("ping: " + msg);
-}
+// Create an anonymous actor
+Storage storage = Woody.newActor(Storage.class);
 
-@Subscription("echo")
-public Integer echo(Integer event) {
-	return event;
-}
+// Create an anonymous actor pool (multiples actor instances)
+int poolSize = 10;
+Storage storage = Woody.newActor(Storage.class, poolSize);
 
-@Subscription("echo")
-public String echo(String event) {
-	return event;
-}
+// Create and register an actor
+Storage storage = Woody.newActor("storage", Storage.class);
+
+// Create and register an actor pool (multiples actor instances)
+int poolSize = 10;
+Storage storage = Woody.newActor("storage", Storage.class, poolSize); 
+// NOTE: this example doesn't make any sense, because each actor as its own instance variables
+
+// Register an object as an anonymous actor
+Woody.register(new Storage());
+// NOTE: The only way to contact an anonymous actor, registered this way, is the actor passing is automatic generated name to another actor
+
+// Register an object as actor
+Woody.register("storage", new Storage());
 ```
 
-**NOTE: You may want to consider the addition of a catch all method (that receives Object instances) to prevent the crash of your actor when you receive an event of an unsupported data type.**
 
+#### Obtaining actor instances
+
+Woody provides 3 ways to obtain an actor instance.
 
 ```java
-public class Actor2 {
-	@Self
-	private String name = null;
-	
-	@Subscription("ping")
-	public void ping(Integer msg) {
-		System.out.println("[" + name + "] ping: " + msg);
-	}
-}
+// Obtain an actor instance during actor creation
+Storage storage = Woody.newActor(Storage.class);
 
-// Every time we create/register an actor, a new instance is created
-Woody.newActor(Actor2.class); // Just create a new actor
-Woody.newActor(Actor2.class); // Just create another actor
-Woody.register(new Actor2()); // And a third actor is registered
+// Obtain an actor instance searching for its registration name
+Storage storage = Woody.findActor("storage");
 
-for (int i = 0; i < 5; i ++) {
-	// The event is published to a topic
-	Woody.publish("ping", i);
-	Runner.sleep(1, TimeUnit.SECONDS);
-}
+// Let Woody inject the actor instance dependency
+@Actor("storage") private Storage storage = null;
 ```
 
 
-### RPC
-The RPC mechanism is implemented by sending messages, the caller send a message to the actor, the actor computes a response and the caller receives it using a Future object.
+### Invoke actor methods
 
-To be able to receive RPC calls the actor must provide one or more methods mark with the **CallHandler** annotation to mark the method to process the RPC call.
+Use the actor instance like any other object, but remember, you are only allowed to invoke the method marked with **Async** annotation.   
 
 ```java
-public class Actor3 {
-	// We can use the Actor annotation to request the actor reference to be injected 
-	@Actor("a1")
-	private ActorRef a1 = null;
-	
-	private int counter = 0;
-	
-	@CallHandler("increment")
-	public Integer inc(Integer value) {
-		counter += value;
-		
-		// We can send a message/call to another actor
-		a1.cast("Current value is " + counter);
-		
-		return counter;
-	}
-}
+storage.put("a", 1);
+storage.put("b", 2);
 
-// We can create an actor instance and registration in one operation 
-Woody.newActor("a3", Actor3.class);
+System.out.println(storage.get("a"));
+System.out.println(storage.get("b"));
 
-//... somewhere else in our code ...
+storage.delete("b");
 
-// We can also obtain a reference to an actor
-ActorRef a3 = Woody.findActorRef("a3");
-
-Future<Object> currentValue = a3.call("increment", 1);
-
-// ... do stuff ...
-
-System.out.println("Added 1 and now the value is " + currentValue.get());
-
-// We can specify the maximum time the computation can take to completed
-try {
-	// We can specify the maxim time the computation can take to completed
-	System.out.println("Added 5 and now the value is " + a3.call("increment", 5).get(10, TimeUnit.MILLISECONDS));
-} catch (TimeoutException e) {
-	System.err.println("Computation took to long, we received a timeout");
-}
+System.out.println(storage.get("a"));
+System.out.println(storage.get("b"));
 ```
-
 
 ## License
 [Apache License Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html)
